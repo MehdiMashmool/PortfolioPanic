@@ -70,17 +70,32 @@ const Auth = () => {
           return;
         }
 
-        const { error } = await supabase.auth.signUp({
+        // First register the user with Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
-              username,
+              username, // Add username to user metadata
             },
           },
         });
-        if (error) throw error;
-        toast.success('Account created! Please check your email to verify your account.');
+
+        if (authError) throw authError;
+
+        // Check if we got a user back
+        if (authData.user) {
+          // Check if user needs email confirmation
+          if (authData.user.identities && authData.user.identities.length === 0) {
+            toast.error("This email is already registered. Please sign in instead.");
+            setLoading(false);
+            return;
+          }
+
+          toast.success('Account created! Please check your email to verify your account.');
+        } else {
+          toast.error("Failed to create account. Please try again.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -90,7 +105,8 @@ const Auth = () => {
         navigate('/');
       }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Authentication error:', error);
+      toast.error(error.message || "An error occurred during authentication");
     } finally {
       setLoading(false);
     }
