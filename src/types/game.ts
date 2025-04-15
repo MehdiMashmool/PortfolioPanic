@@ -1,4 +1,3 @@
-
 export type Asset = {
   id: string;
   name: string;
@@ -44,4 +43,12 @@ export type GameState = {
   activeNews: NewsItem[];
   netWorthHistory: { round: number; value: number }[];
   marketHealth: number;
+};
+
+export type {
+  Asset,
+  Holdings,
+  NewsItem,
+  TradeAction,
+  GameState
 };

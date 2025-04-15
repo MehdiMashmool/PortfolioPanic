@@ -1,5 +1,4 @@
-
-import { Asset, NewsItem } from '../contexts/GameContext';
+import type { Asset, NewsItem } from '../types/game';
 
 // Calculate new price based on previous price, volatility, and news
 export const calculateNewPrices = (

@@ -1,4 +1,4 @@
-import { Asset, NewsItem } from '../contexts/GameContext';
+import type { Asset, NewsItem } from '../types/game';
 
 // Stock-specific news templates
 const stockNewsTemplates = [

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Asset } from '../contexts/GameContext';
+import type { Asset } from '../types/game';
 import { formatCurrency, getPriceChangeColor } from '../utils/marketLogic';
 import { Card, CardContent } from './ui/card';
 import { ArrowUp, ArrowDown, TrendingUp } from 'lucide-react';
