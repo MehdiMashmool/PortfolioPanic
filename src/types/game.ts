@@ -50,4 +50,5 @@ export type GameState = {
   activeNews: NewsItem[];
   netWorthHistory: NetWorthHistoryEntry[];
   marketHealth: number;
+  lastPriceUpdate?: number;
 };

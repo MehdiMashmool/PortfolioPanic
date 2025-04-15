@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { generateMarketNews } from '../utils/newsGenerator';
 import { GameState, TradeAction } from '../types/game';
@@ -6,14 +5,13 @@ import { gameReducer } from '../reducers/gameReducer';
 import { initialGameState } from '../constants/gameInitialState';
 import { showAchievementToast } from '../components/AchievementToast';
 import { AchievementType } from '../components/AchievementBadge';
+import { supabase } from '../integrations/supabase/client';
 
 type GameContextType = {
   state: GameState;
   calculateNetWorth: () => number;
   executeTrade: (assetId: string, action: TradeAction, amount: number) => void;
   startGame: () => void;
-  pauseGame: () => void;
-  resumeGame: () => void;
   endGame: () => void;
   nextRound: () => void;
   unlockAchievement: (achievement: AchievementType) => void;
@@ -31,15 +29,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let frameId: number;
 
     const updateTimer = (timestamp: number) => {
-      if (!state.isPaused && !state.isGameOver) {
+      if (!state.isGameOver) {
         if (lastTickTime === null) {
           setLastTickTime(timestamp);
         } else {
           const deltaTime = (timestamp - lastTickTime) / 1000;
           dispatch({ type: 'TICK', payload: deltaTime });
           
-          // Limit how often prices update to prevent visual jumps
-          if (Math.random() < 0.05) {
+          // Update prices every 5 seconds
+          if (Date.now() - (state.lastPriceUpdate || 0) >= 5000) {
             dispatch({ type: 'UPDATE_PRICES' });
           }
           
@@ -58,7 +56,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             dispatch({ type: 'UPDATE_MARKET_HEALTH', payload: newHealth });
           }
 
-          // Update net worth every 5 seconds for the performance chart
+          // Update net worth every 5 seconds
           const now = Date.now();
           if (now - lastNetWorthUpdate > 5000) {
             dispatch({ type: 'UPDATE_NET_WORTH' });
@@ -77,7 +75,32 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [state.isPaused, state.isGameOver, lastTickTime, lastNetWorthUpdate]);
+  }, [state.isGameOver, lastTickTime, lastNetWorthUpdate]);
+
+  // Store high score when game ends
+  useEffect(() => {
+    const saveHighScore = async () => {
+      if (state.isGameOver) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const finalValue = calculateNetWorth();
+            await supabase
+              .from('high_scores')
+              .insert({
+                user_id: user.id,
+                portfolio_value: finalValue,
+                achieved_at: new Date().toISOString()
+              });
+          }
+        } catch (error) {
+          console.error('Error saving high score:', error);
+        }
+      }
+    };
+
+    saveHighScore();
+  }, [state.isGameOver]);
 
   // Check for achievements
   useEffect(() => {
@@ -112,7 +135,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     setLastTickTime(null);
-  }, [state.isPaused]);
+  }, []);
 
   const calculateNetWorth = () => {
     let netWorth = state.cash;
@@ -156,8 +179,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const startGame = () => dispatch({ type: 'START_GAME' });
-  const pauseGame = () => dispatch({ type: 'PAUSE_GAME' });
-  const resumeGame = () => dispatch({ type: 'RESUME_GAME' });
   const endGame = () => dispatch({ type: 'END_GAME' });
   const nextRound = () => {
     if (state.round >= 10) {
@@ -172,8 +193,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     calculateNetWorth,
     executeTrade,
     startGame,
-    pauseGame,
-    resumeGame,
     endGame,
     nextRound,
     unlockAchievement

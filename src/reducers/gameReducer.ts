@@ -1,11 +1,8 @@
-
 import { GameState, TradeAction } from '../types/game';
 import { calculateNewPrices } from '../utils/marketLogic';
 
 type Action =
   | { type: 'START_GAME' }
-  | { type: 'PAUSE_GAME' }
-  | { type: 'RESUME_GAME' }
   | { type: 'END_GAME' }
   | { type: 'NEXT_ROUND' }
   | { type: 'TICK'; payload: number }
@@ -16,13 +13,11 @@ type Action =
   | { type: 'UPDATE_MARKET_HEALTH'; payload: number }
   | { type: 'UPDATE_NET_WORTH' };
 
-import { initialGameState } from '../constants/gameInitialState';
-
 export const gameReducer = (state: GameState, action: Action): GameState => {
   switch (action.type) {
     case 'START_GAME':
       return {
-        ...initialGameState,
+        ...state,
         isPaused: false,
         round: 1,
         timeRemaining: 60,
@@ -32,13 +27,8 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         marketHealth: 100,
         news: [],
         activeNews: [],
+        lastPriceUpdate: Date.now(),
       };
-      
-    case 'PAUSE_GAME':
-      return { ...state, isPaused: true };
-      
-    case 'RESUME_GAME':
-      return { ...state, isPaused: false };
       
     case 'END_GAME':
       return { ...state, isPaused: true, isGameOver: true };
@@ -53,6 +43,7 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         timeRemaining: 60,
         isPaused: false,
         activeNews: [],
+        lastPriceUpdate: Date.now(),
       };
 
     case 'TICK': {
@@ -98,6 +89,12 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
     }
 
     case 'UPDATE_PRICES': {
+      // Only update prices if 5 seconds have passed since last update
+      const now = Date.now();
+      if (now - (state.lastPriceUpdate || 0) < 5000) {
+        return state;
+      }
+
       const updatedAssets = state.assets.map(asset => ({
         ...asset,
         previousPrice: asset.price,
@@ -107,7 +104,12 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
           state.marketHealth
         )
       }));
-      return { ...state, assets: updatedAssets };
+
+      return { 
+        ...state, 
+        assets: updatedAssets,
+        lastPriceUpdate: now
+      };
     }
 
     case 'ADD_NEWS':
