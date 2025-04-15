@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Button } from './ui/button';
-import { Info, Trophy, ArrowRight } from 'lucide-react';
+import { Info, Trophy, ArrowRight, Medal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const MainMenu = () => {
@@ -26,7 +25,7 @@ const MainMenu = () => {
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-3 gap-4">
             <Button 
               variant="outline" 
               className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
@@ -42,6 +41,14 @@ const MainMenu = () => {
             >
               <Trophy className="mr-2 h-4 w-4 text-amber-400" />
               Achievements
+            </Button>
+            <Button 
+              variant="outline"
+              className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
+              onClick={() => navigate('/leaderboard')}
+            >
+              <Medal className="mr-2 h-4 w-4 text-emerald-400" />
+              Leaderboard
             </Button>
           </div>
         </div>
