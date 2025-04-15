@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { generateMarketNews } from '../utils/newsGenerator';
 import { GameState, TradeAction } from '../types/game';
@@ -29,17 +28,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [lastNetWorthUpdate, setLastNetWorthUpdate] = useState<number>(0);
   const [lastNewsUpdate, setLastNewsUpdate] = useState<number>(0);
   const [achievementsUnlocked, setAchievementsUnlocked] = useState<Set<AchievementType>>(new Set());
+  const [recentNewsIds, setRecentNewsIds] = useState<Set<string>>(new Set());
 
-  // Strict 3-second update interval for price updates
   const PRICE_UPDATE_INTERVAL = 3000;
 
-  // Initialize price history on mount
   useEffect(() => {
-    // Initialize price history for each asset only once when component mounts
     state.assets.forEach(asset => {
       updateAssetPriceHistory(asset.id, asset.price, Date.now());
     });
-  }, []); // Empty dependency array ensures this only runs once on mount
+  }, []);
 
   useEffect(() => {
     let frameId: number;
@@ -54,11 +51,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           const now = Date.now();
           
-          // Update prices every 3 seconds exactly
           if (now - lastPriceUpdate >= PRICE_UPDATE_INTERVAL) {
             dispatch({ type: 'UPDATE_PRICES' });
             
-            // Update asset price history charts
             state.assets.forEach(asset => {
               updateAssetPriceHistory(asset.id, asset.price, now);
             });
@@ -66,26 +61,40 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLastPriceUpdate(now);
           }
           
-          // Generate news every 5 seconds
           if (now - lastNewsUpdate >= 5000) {
-            const newsItem = generateMarketNews(state.assets, state.round);
-            dispatch({ type: 'ADD_NEWS', payload: newsItem });
-            
-            setTimeout(() => {
-              dispatch({ type: 'EXPIRE_NEWS', payload: newsItem.id });
-            }, 15000);
-            
-            setLastNewsUpdate(now);
+            let newsItem;
+            let attempts = 0;
+            const maxAttempts = 5;
+
+            do {
+              newsItem = generateMarketNews(state.assets, state.round);
+              attempts++;
+            } while (recentNewsIds.has(newsItem.id) && attempts < maxAttempts);
+
+            if (!recentNewsIds.has(newsItem.id) || attempts >= maxAttempts) {
+              dispatch({ type: 'ADD_NEWS', payload: newsItem });
+              
+              recentNewsIds.add(newsItem.id);
+              if (recentNewsIds.size > 20) {
+                const oldestId = recentNewsIds.values().next().value;
+                recentNewsIds.delete(oldestId);
+              }
+
+              setTimeout(() => {
+                dispatch({ type: 'EXPIRE_NEWS', payload: newsItem.id });
+                recentNewsIds.delete(newsItem.id);
+              }, 15000);
+              
+              setLastNewsUpdate(now);
+            }
           }
 
-          // Update market health randomly
           if (Math.random() < 0.02) {
             const healthChange = (Math.random() * 6) - 3;
             const newHealth = Math.max(0, Math.min(100, state.marketHealth + healthChange));
             dispatch({ type: 'UPDATE_MARKET_HEALTH', payload: newHealth });
           }
 
-          // Update net worth every 3 seconds
           if (now - lastNetWorthUpdate >= PRICE_UPDATE_INTERVAL) {
             const netWorth = calculateNetWorth();
             dispatch({ type: 'UPDATE_NET_WORTH' });
@@ -101,10 +110,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     frameId = requestAnimationFrame(updateTimer);
-    
-    return () => {
-      cancelAnimationFrame(frameId);
-    };
+    return () => cancelAnimationFrame(frameId);
   }, [state.isGameOver, lastTickTime, lastPriceUpdate, lastNetWorthUpdate, lastNewsUpdate, state.assets]);
 
   useEffect(() => {
@@ -132,18 +138,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [state.isGameOver]);
 
   useEffect(() => {
-    // Check for first trade
     if (Object.keys(state.holdings).length > 0 && !achievementsUnlocked.has('first-trade')) {
       unlockAchievement('first-trade');
     }
     
-    // Check for portfolio doubled
     const netWorth = calculateNetWorth();
     if (netWorth >= 20000 && !achievementsUnlocked.has('doubled-portfolio')) {
       unlockAchievement('doubled-portfolio');
     }
 
-    // Check for diversified portfolio
     const assetTypes = new Set(state.assets.map(asset => asset.color));
     const investedTypes = new Set();
     Object.entries(state.holdings).forEach(([assetId, holding]) => {
@@ -184,7 +187,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const executeTrade = (assetId: string, action: TradeAction, amount: number) => {
-    if (state.isGameOver) return; // Prevent trades after game over
+    if (state.isGameOver) return;
     
     const asset = state.assets.find(a => a.id === assetId);
     if (!asset) return;
@@ -210,7 +213,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const startGame = () => {
     dispatch({ type: 'START_GAME' });
     
-    // Initialize price history for all assets
     state.assets.forEach(asset => {
       updateAssetPriceHistory(asset.id, asset.price);
     });

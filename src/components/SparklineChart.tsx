@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Area, CartesianGrid } from 'recharts';
 import { cn } from "@/lib/utils";
@@ -86,120 +85,40 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   const enhancedMin = Math.max(0, minValue - padding * 1.5);
   const enhancedMax = maxValue + padding * 2;
 
-  // Calculate time domain for X-axis to ensure proper historical view
-  // Convert any string timestamps to numbers first
-  let timeMin: number = typeof data[0]?.timestamp === 'number' 
-    ? data[0].timestamp as number 
-    : Date.now();
-    
-  let timeMax: number = typeof data[data.length - 1]?.timestamp === 'number' 
-    ? data[data.length - 1].timestamp as number 
-    : Date.now();
+  // Calculate time domain for X-axis
+  const timeMin = Number(data[0]?.timestamp) || Date.now();
+  const timeMax = Number(data[data.length - 1]?.timestamp) || Date.now();
   
-  // Ensure we have a reasonable time range for the x-axis
-  if (timeMax - timeMin < 60000) { // Less than 1 minute
-    timeMin = timeMax - 60000; // Show at least 1 minute of data
-  }
-
   return (
-    <div className={cn("h-[30px] w-full sparkline-chart", className)}>
+    <div className={cn("h-[30px] w-full", className)}>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart 
           data={data} 
-          margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+          margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
         >
-          <CartesianGrid 
-            vertical={false} 
-            stroke="#2A303C" 
-            strokeDasharray="3 3" 
-            className="grid"
+          <YAxis 
+            domain={[enhancedMin, enhancedMax]}
+            hide={true}
           />
-          {showAxes && (
-            <>
-              <XAxis 
-                dataKey="timestamp"
-                tick={{ fill: '#8E9196' }}
-                tickLine={{ stroke: '#8E9196' }}
-                axisLine={{ stroke: '#2A303C' }}
-                tickFormatter={(value) => new Date(value).toLocaleTimeString()}
-                type="number"
-                domain={[timeMin, timeMax]}
-                scale="time"
-              />
-              <YAxis 
-                domain={[enhancedMin, enhancedMax]}
-                tick={{ fill: '#8E9196' }}
-                tickLine={{ stroke: '#8E9196' }}
-                axisLine={{ stroke: '#2A303C' }}
-                tickFormatter={(value) => formatCurrency(value)}
-              />
-            </>
-          )}
-          {!showAxes && (
-            <>
-              <YAxis 
-                domain={[enhancedMin, enhancedMax]}
-                hide={true}
-              />
-              <XAxis 
-                dataKey="timestamp"
-                type="number"
-                domain={[timeMin, timeMax]}
-                hide={true}
-                scale="time"
-              />
-            </>
-          )}
+          <XAxis 
+            dataKey="timestamp"
+            type="number"
+            domain={[timeMin, timeMax]}
+            hide={true}
+          />
           {showTooltip && (
             <Tooltip 
               content={<CustomTooltip valuePrefix={valuePrefix} />}
-              cursor={{ 
-                stroke: '#4B5563', 
-                strokeWidth: 1, 
-                strokeDasharray: '3 3' 
-              }}
-              isAnimationActive={true}
-            />
-          )}
-          {referenceValue !== undefined && (
-            <ReferenceLine
-              y={referenceValue}
-              stroke="#6B7280"
-              strokeWidth={1}
-              strokeDasharray="3 3"
-              ifOverflow="extendDomain"
-              label={{
-                value: `Start: ${formatCurrency(referenceValue)}`,
-                position: 'left',
-                fill: '#8E9196',
-                fontSize: 12
-              }}
+              cursor={{ stroke: '#4B5563', strokeWidth: 1 }}
             />
           )}
           {areaFill && (
-            <defs>
-              <linearGradient id={`sparklineGradient-${lineColor.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
-                <stop 
-                  offset="5%" 
-                  stopColor={lineColor}
-                  stopOpacity={0.3}
-                />
-                <stop 
-                  offset="95%" 
-                  stopColor={lineColor}
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-          )}
-          {areaFill && (
-            <Area 
+            <Area
               type="monotone"
               dataKey="value"
               stroke="none"
-              fill={`url(#sparklineGradient-${lineColor.replace('#', '')})`}
-              fillOpacity={1}
-              animationDuration={500}
+              fill={areaColor}
+              fillOpacity={0.2}
             />
           )}
           <Line
@@ -208,14 +127,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
             stroke={lineColor}
             strokeWidth={2}
             dot={false}
-            activeDot={showTooltip ? { 
-              r: 4, 
-              stroke: lineColor, 
-              strokeWidth: 2, 
-              fill: "#1A1F2C" 
-            } : false}
-            isAnimationActive={true}
-            animationDuration={500}
+            activeDot={showTooltip ? { r: 4, stroke: lineColor, strokeWidth: 2, fill: "#1A1F2C" } : false}
           />
         </LineChart>
       </ResponsiveContainer>
