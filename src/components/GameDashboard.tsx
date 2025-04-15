@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useGame } from '../contexts/GameContext';
 import { formatCurrency, calculateAllocation } from '../utils/marketLogic';
@@ -44,12 +43,10 @@ const GameDashboard: React.FC = () => {
     ? (netWorthChange / state.netWorthHistory[0].value) * 100
     : 0;
 
-  // Calculate portfolio allocation
   const calculatePortfolioData = () => {
     let totalInvested = 0;
     const assetValues: { [key: string]: number } = {};
     
-    // Calculate invested value per asset
     Object.entries(state.holdings).forEach(([assetId, holding]) => {
       const asset = state.assets.find(a => a.id === assetId);
       if (asset && holding.quantity > 0) {
@@ -59,7 +56,6 @@ const GameDashboard: React.FC = () => {
       }
     });
     
-    // If nothing is invested, show cash as 100%
     if (totalInvested === 0) {
       return [{
         name: 'Cash',
@@ -68,7 +64,6 @@ const GameDashboard: React.FC = () => {
       }];
     }
     
-    // Calculate allocation percentages
     const allocation = Object.entries(assetValues).map(([assetId, value]) => {
       const asset = state.assets.find(a => a.id === assetId);
       const percentage = (value / (totalInvested + state.cash)) * 100;
@@ -84,7 +79,6 @@ const GameDashboard: React.FC = () => {
       };
     });
     
-    // Add cash to allocation
     const cashPercentage = (state.cash / (totalInvested + state.cash)) * 100;
     if (cashPercentage > 0) {
       allocation.push({
@@ -140,7 +134,6 @@ const GameDashboard: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] text-white">
-      {/* Header */}
       <header className="border-b border-white/10 bg-[#0F172A]/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -224,9 +217,7 @@ const GameDashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl">
             <CardContent className="p-6">
@@ -273,7 +264,6 @@ const GameDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Assets */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Assets</h2>
@@ -294,7 +284,6 @@ const GameDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column */}
         <div className="space-y-6">
           <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl">
             <CardContent className="p-6">
@@ -306,7 +295,7 @@ const GameDashboard: React.FC = () => {
           <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl">
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Market Health</h2>
-              <MarketHealth />
+              <MarketHealth health={state.marketHealth} />
             </CardContent>
           </Card>
 
