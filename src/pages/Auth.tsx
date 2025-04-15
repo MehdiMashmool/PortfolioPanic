@@ -4,9 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy } from 'lucide-react';
+import { Trophy, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -14,7 +15,40 @@ const Auth = () => {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
   const navigate = useNavigate();
+
+  const checkUsernameAvailability = async (username: string) => {
+    if (!username || username.length < 3) return false;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username)
+        .limit(1);
+      
+      if (error) throw error;
+      return data.length === 0; // true if username is available
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      return false;
+    }
+  };
+
+  const handleUsernameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUsername = e.target.value;
+    setUsername(newUsername);
+    setUsernameError('');
+    
+    // Only check availability if username is valid length and we're in signup mode
+    if (isSignUp && newUsername && newUsername.length >= 3) {
+      const isAvailable = await checkUsernameAvailability(newUsername);
+      if (!isAvailable) {
+        setUsernameError('This username is already taken');
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +56,20 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
+        // Final check for username availability before signup
+        if (username.length < 3) {
+          setUsernameError('Username must be at least 3 characters');
+          setLoading(false);
+          return;
+        }
+        
+        const isAvailable = await checkUsernameAvailability(username);
+        if (!isAvailable) {
+          setUsernameError('This username is already taken');
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -73,9 +121,21 @@ const Auth = () => {
                   id="username"
                   placeholder="Enter your username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={handleUsernameChange}
                   required={isSignUp}
+                  className={usernameError ? "border-destructive" : ""}
                 />
+                {usernameError && (
+                  <Alert variant="destructive" className="py-2 mt-1">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-xs ml-2">{usernameError}</AlertDescription>
+                  </Alert>
+                )}
+                {isSignUp && !usernameError && username && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Username must be at least 3 characters
+                  </p>
+                )}
               </div>
             )}
             <div className="space-y-2">
@@ -104,13 +164,16 @@ const Auth = () => {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || (isSignUp && (!!usernameError || username.length < 3))}>
               {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
             </Button>
           </form>
           <div className="mt-4 text-center">
             <button
-              onClick={() => setIsSignUp(!isSignUp)}
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setUsernameError('');
+              }}
               className="text-sm text-muted-foreground hover:text-primary"
             >
               {isSignUp
