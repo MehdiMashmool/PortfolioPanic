@@ -1,32 +1,11 @@
 
 import React from 'react';
 import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Info, Trophy, LogOut } from 'lucide-react';
+import { Info, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
 const MainMenu = () => {
   const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      toast({
-        title: "Logged out",
-        description: "Successfully logged out of your account.",
-      });
-      navigate('/auth');
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -43,7 +22,7 @@ const MainMenu = () => {
           Play Now
         </Button>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <Button 
             variant="outline" 
             className="bg-panel border-panel-light hover:bg-panel-light text-neutral"
@@ -59,14 +38,6 @@ const MainMenu = () => {
           >
             <Trophy className="mr-2 h-4 w-4" />
             Achievements
-          </Button>
-          <Button 
-            variant="outline"
-            className="bg-panel border-panel-light hover:bg-panel-light text-red-400"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
           </Button>
         </div>
 
