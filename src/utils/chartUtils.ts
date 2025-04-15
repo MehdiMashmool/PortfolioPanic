@@ -1,3 +1,4 @@
+
 /**
  * Chart data management utilities for asset sparklines and portfolio charts
  */
@@ -48,6 +49,11 @@ export const assetPriceHistory: Record<string, AssetChartData> = {};
  * Initialize asset price history for a new asset
  */
 export const initAssetPriceHistory = (assetId: string, initialPrice: number) => {
+  // Only initialize if not already initialized
+  if (assetPriceHistory[assetId]) {
+    return;
+  }
+  
   const timestamp = Date.now();
   assetPriceHistory[assetId] = {
     timestamps: [timestamp],
@@ -59,7 +65,8 @@ export const initAssetPriceHistory = (assetId: string, initialPrice: number) => 
 };
 
 /**
- * Enforce a 3-second update interval for all chart updates
+ * Fixed 3-second update interval for all chart updates
+ * This is a critical timing parameter for chart visualization
  */
 const UPDATE_INTERVAL = 3000;
 let lastGraphUpdate = 0;

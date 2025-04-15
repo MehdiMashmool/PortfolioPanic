@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { generateMarketNews } from '../utils/newsGenerator';
 import { GameState, TradeAction } from '../types/game';
@@ -29,6 +30,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [lastNewsUpdate, setLastNewsUpdate] = useState<number>(0);
   const [achievementsUnlocked, setAchievementsUnlocked] = useState<Set<AchievementType>>(new Set());
 
+  // Strict 3-second update interval for price updates
+  const PRICE_UPDATE_INTERVAL = 3000;
+
   useEffect(() => {
     let frameId: number;
 
@@ -42,8 +46,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           const now = Date.now();
           
-          // Update prices every 3 seconds
-          if (now - lastPriceUpdate >= 3000) {
+          // Update prices every 3 seconds exactly
+          if (now - lastPriceUpdate >= PRICE_UPDATE_INTERVAL) {
             dispatch({ type: 'UPDATE_PRICES' });
             
             // Update asset price history charts
@@ -74,7 +78,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
 
           // Update net worth every 3 seconds
-          if (now - lastNetWorthUpdate >= 3000) {
+          if (now - lastNetWorthUpdate >= PRICE_UPDATE_INTERVAL) {
             const netWorth = calculateNetWorth();
             dispatch({ type: 'UPDATE_NET_WORTH' });
             updatePortfolioHistory(netWorth, now);

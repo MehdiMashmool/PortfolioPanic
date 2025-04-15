@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Area, CartesianGrid } from 'recharts';
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 import { formatCurrency } from '../utils/marketLogic';
 import { getAssetChartColors } from '../utils/chartUtils';
 
@@ -89,7 +89,10 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   return (
     <div className={cn("h-[30px] w-full sparkline-chart", className)}>
       <ResponsiveContainer width="100%" height={height}>
-        <LineChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+        <LineChart 
+          data={data} 
+          margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+        >
           <CartesianGrid 
             vertical={false} 
             stroke="#2A303C" 
@@ -104,6 +107,9 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
                 tickLine={{ stroke: '#8E9196' }}
                 axisLine={{ stroke: '#2A303C' }}
                 tickFormatter={(value) => new Date(value).toLocaleTimeString()}
+                type="number"
+                domain={['dataMin', 'dataMax']}
+                scale="time"
               />
               <YAxis 
                 domain={[enhancedMin, enhancedMax]}
@@ -115,10 +121,19 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
             </>
           )}
           {!showAxes && (
-            <YAxis 
-              domain={[enhancedMin, enhancedMax]}
-              hide={true}
-            />
+            <>
+              <YAxis 
+                domain={[enhancedMin, enhancedMax]}
+                hide={true}
+              />
+              <XAxis 
+                dataKey="timestamp"
+                type="number"
+                domain={['dataMin', 'dataMax']}
+                hide={true}
+                scale="time"
+              />
+            </>
           )}
           {showTooltip && (
             <Tooltip 
@@ -128,6 +143,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
                 strokeWidth: 1, 
                 strokeDasharray: '3 3' 
               }}
+              isAnimationActive={true}
             />
           )}
           {referenceValue !== undefined && (
