@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import { InfoCircle, Trophy } from 'lucide-react';
+import { Info, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const MainMenu = () => {
@@ -29,7 +29,7 @@ const MainMenu = () => {
             className="bg-panel border-panel-light hover:bg-panel-light text-neutral"
             onClick={() => navigate('/how-to-play')}
           >
-            <InfoCircle className="mr-2 h-4 w-4" />
+            <Info className="mr-2 h-4 w-4" />
             How to Play
           </Button>
           <Button 
