@@ -2,10 +2,11 @@
 import { CardHeader, CardTitle } from './ui/card';
 import { Progress } from './ui/progress';
 import { useGame } from '../contexts/GameContext';
-import { Clock, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { Button } from './ui/button';
 
 const RoundInfo = () => {
-  const { state } = useGame();
+  const { state, nextRound } = useGame();
   const { round, timeRemaining, isGameOver } = state;
   
   // Calculate progress percentage
@@ -23,6 +24,8 @@ const RoundInfo = () => {
     if (timeRemaining <= 20) return 'bg-amber-500';
     return 'bg-blue-500';
   };
+
+  const isRoundComplete = timeRemaining <= 0 && !isGameOver;
   
   return (
     <CardHeader className="pb-2">
@@ -30,9 +33,8 @@ const RoundInfo = () => {
         <CardTitle className="text-lg font-semibold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent flex items-center">
           {isGameOver ? 'Game Over' : `Round ${round}/10`}
         </CardTitle>
-        <div className={`text-lg font-semibold flex items-center ${getTimeColor()}`}>
-          {timeRemaining <= 10 && <AlertTriangle size={16} className="mr-1 animate-pulse text-red-500" />}
-          <Clock size={16} className="mr-1" />
+        <div className={`text-lg font-semibold ${getTimeColor()}`}>
+          {timeRemaining <= 10 && <AlertTriangle size={16} className="mr-1 animate-pulse text-red-500 inline" />}
           {timeRemaining <= 0 ? '0:00' : `${Math.floor(timeRemaining / 60)}:${(Math.floor(timeRemaining) % 60).toString().padStart(2, '0')}`}
         </div>
       </div>
@@ -40,9 +42,19 @@ const RoundInfo = () => {
         value={progressPercentage} 
         className={`h-2 mt-2 ${getBarColor()}`} 
       />
-      {timeRemaining <= 10 && !isGameOver && (
+      {timeRemaining <= 10 && !isGameOver && !isRoundComplete && (
         <div className="text-xs text-red-400 mt-1 animate-pulse text-center">
           Time running out! Make your final trades for this round.
+        </div>
+      )}
+      {isRoundComplete && (
+        <div className="mt-4 text-center">
+          <Button 
+            onClick={nextRound}
+            className="bg-blue-600 hover:bg-blue-700 text-white animate-pulse"
+          >
+            Go to Next Round
+          </Button>
         </div>
       )}
     </CardHeader>

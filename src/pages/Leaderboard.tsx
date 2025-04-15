@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy, Medal, Award, ArrowLeft, Crown, Settings, Info, Loader2 } from 'lucide-react';
+import { Trophy, Medal, Award, ArrowLeft, Crown, Info, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -23,6 +23,7 @@ const formatCurrency = (value: number) => {
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [userRank, setUserRank] = useState<number | null>(null);
   const navigate = useNavigate();
 
@@ -32,21 +33,48 @@ const Leaderboard = () => {
         // First get current user
         const { data: { user } } = await supabase.auth.getUser();
         
-        // Then fetch leaderboard data with a JOIN between high_scores and profiles
-        const { data, error } = await supabase
+        // Direct query instead of using joins which might be causing the error
+        const { data: highScores, error: scoresError } = await supabase
           .from('high_scores')
-          .select(`
-            portfolio_value,
-            achieved_at,
-            profiles:user_id (username)
-          `)
+          .select('user_id, portfolio_value, achieved_at')
           .order('portfolio_value', { ascending: false })
           .limit(100);
 
-        if (error) throw error;
+        if (scoresError) {
+          setError('Failed to fetch high scores');
+          console.error('Error fetching high scores:', scoresError);
+          return;
+        }
 
-        const formattedData = data.map((entry: any) => ({
-          username: entry.profiles?.username || 'Unknown Player',
+        // If we have no high scores, return empty array
+        if (!highScores || highScores.length === 0) {
+          setLeaderboard([]);
+          setLoading(false);
+          return;
+        }
+
+        // Get user profiles in a separate query
+        const userIds = highScores.map(score => score.user_id);
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .in('id', userIds);
+
+        if (profilesError) {
+          setError('Failed to fetch user profiles');
+          console.error('Error fetching profiles:', profilesError);
+          return;
+        }
+
+        // Create a map of user IDs to usernames
+        const usernameMap = new Map();
+        profiles?.forEach(profile => {
+          usernameMap.set(profile.id, profile.username);
+        });
+
+        // Combine high scores with usernames
+        const formattedData = highScores.map(entry => ({
+          username: usernameMap.get(entry.user_id) || 'Unknown Player',
           portfolio_value: entry.portfolio_value,
           achieved_at: new Date(entry.achieved_at).toLocaleDateString(),
         }));
@@ -64,6 +92,7 @@ const Leaderboard = () => {
         }
       } catch (error) {
         console.error('Error fetching leaderboard:', error);
+        setError('Unexpected error loading leaderboard');
         toast({
           title: "Error loading leaderboard",
           description: "Please try again later.",
@@ -128,6 +157,18 @@ const Leaderboard = () => {
             <div className="text-center py-12 flex flex-col items-center">
               <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
               <p className="text-neutral">Loading leaderboard...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 flex flex-col items-center">
+              <Info className="h-8 w-8 text-red-400 mb-4" />
+              <h3 className="text-lg font-medium mb-1">Error loading leaderboard</h3>
+              <p className="text-neutral mb-4">{error}</p>
+              <Button 
+                onClick={() => window.location.reload()}
+                variant="outline"
+              >
+                Try Again
+              </Button>
             </div>
           ) : leaderboard.length === 0 ? (
             <div className="text-center py-12 flex flex-col items-center">

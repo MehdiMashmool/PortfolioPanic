@@ -1,24 +1,16 @@
 
 import React, { useState } from 'react';
-import { Bell, Clock, Settings, Volume2, VolumeX } from 'lucide-react';
+import { Bell, Settings } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { toast } from '@/hooks/use-toast';
 import { useGame } from '../contexts/GameContext';
+import { useNavigate } from 'react-router-dom';
 
 const GameHeader = () => {
   const { state } = useGame();
-  const [muted, setMuted] = useState<boolean>(true);
   const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
-
-  const handleToggleSound = () => {
-    setMuted(!muted);
-    toast({
-      title: muted ? "Sound Enabled" : "Sound Muted",
-      description: muted ? "Game sounds will now play" : "Game sounds are now muted",
-      duration: 2000
-    });
-  };
+  const navigate = useNavigate();
 
   return (
     <header className="border-b border-white/10 bg-[#0F172A]/80 backdrop-blur-xl">
@@ -51,34 +43,6 @@ const GameHeader = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Clock className="w-5 h-5 text-gray-400 cursor-pointer hover:text-white transition-colors" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Time remaining: {Math.floor(state.timeRemaining)}s</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={handleToggleSound}>
-                  {muted ? (
-                    <VolumeX className="w-5 h-5 text-gray-400 cursor-pointer hover:text-white transition-colors" />
-                  ) : (
-                    <Volume2 className="w-5 h-5 text-gray-400 cursor-pointer hover:text-white transition-colors" />
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{muted ? "Unmute" : "Mute"} Game Sounds</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
 
           <TooltipProvider>
             <Tooltip>
@@ -89,8 +53,16 @@ const GameHeader = () => {
                     setShowSettingsMenu(!showSettingsMenu);
                     toast({
                       title: "Settings",
-                      description: "Game settings menu will be available in a future update",
-                      duration: 3000
+                      description: "Use settings to return to the main menu or adjust game options",
+                      duration: 3000,
+                      action: (
+                        <button 
+                          onClick={() => navigate('/')} 
+                          className="bg-blue-600 text-white px-3 py-1 rounded text-xs"
+                        >
+                          Return to Menu
+                        </button>
+                      )
                     });
                   }}
                 />

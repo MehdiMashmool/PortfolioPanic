@@ -44,9 +44,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             dispatch({ type: 'UPDATE_PRICES' });
           }
           
-          // Generate news every 10 seconds instead of randomly
+          // Generate news every 5 seconds instead of 10
           const now = Date.now();
-          if (now - lastNewsUpdate > 10000) {
+          if (now - lastNewsUpdate > 5000) {
             const newsItem = generateMarketNews(state.assets, state.round);
             dispatch({ type: 'ADD_NEWS', payload: newsItem });
             
