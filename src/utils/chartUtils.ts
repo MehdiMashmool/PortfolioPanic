@@ -66,10 +66,15 @@ export const updateAssetPriceHistory = (
   price: number, 
   timestamp = Date.now()
 ) => {
+  // Check if enough time has passed since last update
+  if (timestamp - lastGraphUpdate < UPDATE_INTERVAL) {
+    return false;
+  }
+  
   // Initialize if not exists
   if (!assetPriceHistory[assetId]) {
     initAssetPriceHistory(assetId, price);
-    return;
+    return true;
   }
   
   const history = assetPriceHistory[assetId];
@@ -95,6 +100,9 @@ export const updateAssetPriceHistory = (
       history.max = Math.max(...history.prices);
     }
   }
+  
+  lastGraphUpdate = timestamp;
+  return true;
 };
 
 /**
@@ -127,7 +135,7 @@ export const getAssetChartColors = (assetType: string, prices: number[]) => {
 };
 
 /**
- * Portfolio history data management
+ * Portfolio history data management with fixed update interval
  */
 export const portfolioHistory: PortfolioHistoryData = {
   timestamps: [],
@@ -148,6 +156,11 @@ export const updatePortfolioHistory = (
   timestamp = Date.now(), 
   event: { type: string, description: string } | null = null
 ) => {
+  // Check if enough time has passed since last update
+  if (timestamp - lastGraphUpdate < UPDATE_INTERVAL) {
+    return false;
+  }
+  
   // Store initial value if first data point
   if (portfolioHistory.values.length === 0) {
     portfolioHistory.startValue = value;
@@ -176,11 +189,13 @@ export const updatePortfolioHistory = (
   
   // Keep reasonable history size
   if (portfolioHistory.values.length > 200) {
-    // Simple downsampling for now - just remove oldest points
     portfolioHistory.timestamps.shift();
     portfolioHistory.values.shift();
     portfolioHistory.data.shift();
   }
+  
+  lastGraphUpdate = timestamp;
+  return true;
 };
 
 /**
@@ -226,3 +241,6 @@ export const generateEnhancedSparklineData = (
   
   return history;
 };
+
+const UPDATE_INTERVAL = 3000; // 3 seconds between updates
+let lastGraphUpdate = 0;

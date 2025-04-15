@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { generateMarketNews } from '../utils/newsGenerator';
 import { GameState, TradeAction } from '../types/game';
@@ -24,6 +23,7 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(gameReducer, initialGameState);
   const [lastTickTime, setLastTickTime] = useState<number | null>(null);
+  const [lastPriceUpdate, setLastPriceUpdate] = useState<number>(0);
   const [lastNetWorthUpdate, setLastNetWorthUpdate] = useState<number>(0);
   const [lastNewsUpdate, setLastNewsUpdate] = useState<number>(0);
   const [achievementsUnlocked, setAchievementsUnlocked] = useState<Set<AchievementType>>(new Set());
@@ -39,14 +39,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const deltaTime = (timestamp - lastTickTime) / 1000;
           dispatch({ type: 'TICK', payload: deltaTime });
           
-          // Update prices every 5 seconds
-          if (Date.now() - (state.lastPriceUpdate || 0) >= 5000) {
+          const now = Date.now();
+          
+          // Update prices every 3 seconds
+          if (now - lastPriceUpdate >= 3000) {
             dispatch({ type: 'UPDATE_PRICES' });
+            setLastPriceUpdate(now);
           }
           
-          // Generate news every 5 seconds instead of 10
-          const now = Date.now();
-          if (now - lastNewsUpdate > 5000) {
+          // Generate news every 5 seconds
+          if (now - lastNewsUpdate >= 5000) {
             const newsItem = generateMarketNews(state.assets, state.round);
             dispatch({ type: 'ADD_NEWS', payload: newsItem });
             
@@ -57,14 +59,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLastNewsUpdate(now);
           }
 
+          // Update market health randomly
           if (Math.random() < 0.02) {
             const healthChange = (Math.random() * 6) - 3;
             const newHealth = Math.max(0, Math.min(100, state.marketHealth + healthChange));
             dispatch({ type: 'UPDATE_MARKET_HEALTH', payload: newHealth });
           }
 
-          // Update net worth every 5 seconds
-          if (now - lastNetWorthUpdate > 5000) {
+          // Update net worth every 3 seconds
+          if (now - lastNetWorthUpdate >= 3000) {
             dispatch({ type: 'UPDATE_NET_WORTH' });
             setLastNetWorthUpdate(now);
           }
@@ -81,9 +84,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [state.isGameOver, lastTickTime, lastNetWorthUpdate, lastNewsUpdate]);
+  }, [state.isGameOver, lastTickTime, lastPriceUpdate, lastNetWorthUpdate, lastNewsUpdate]);
 
-  // Store high score when game ends
   useEffect(() => {
     const saveHighScore = async () => {
       if (state.isGameOver) {
@@ -108,7 +110,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     saveHighScore();
   }, [state.isGameOver]);
 
-  // Check for achievements
   useEffect(() => {
     // Check for first trade
     if (Object.keys(state.holdings).length > 0 && !achievementsUnlocked.has('first-trade')) {
