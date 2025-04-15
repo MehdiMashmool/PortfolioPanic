@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { generateMarketNews } from '../utils/newsGenerator';
 import { calculateNewPrices } from '../utils/marketLogic';
@@ -45,8 +44,8 @@ export type GameState = {
   isPaused: boolean;
   isGameOver: boolean;
   news: NewsItem[];
-  netWorthHistory: { round: number; value: number }[];
   activeNews: NewsItem[];
+  netWorthHistory: { round: number; value: number }[];
   marketHealth: number; // 0-100, 100 is healthy, 0 is crash
 };
 
@@ -121,12 +120,20 @@ const initialGameState: GameState = {
   marketHealth: 100,
 };
 
-function gameReducer(state: GameState, action: Action): GameState {
+const gameReducer = (state: GameState, action: Action): GameState => {
   switch (action.type) {
     case 'START_GAME':
       return {
         ...initialGameState,
         isPaused: false,
+        round: 1,
+        timeRemaining: 60,
+        cash: 10000,
+        holdings: {},
+        netWorthHistory: [{ round: 0, value: 10000 }],
+        marketHealth: 100,
+        news: [],
+        activeNews: [],
       };
     
     case 'PAUSE_GAME':
@@ -161,24 +168,27 @@ function gameReducer(state: GameState, action: Action): GameState {
         ...state,
         round: state.round + 1,
         timeRemaining: 60,
-        activeNews: [], // Clear active news for the new round
+        isPaused: false,
+        activeNews: [], 
       };
-    
-    case 'TICK':
-      if (state.timeRemaining <= 0) {
-        return state; // Time's up, wait for NEXT_ROUND action
-      }
 
+    case 'TICK':
       const newTimeRemaining = Math.max(0, state.timeRemaining - action.payload);
       
+      if (newTimeRemaining <= 0) {
+        return {
+          ...state,
+          timeRemaining: 0,
+          isPaused: true,
+        };
+      }
+
       return {
         ...state,
         timeRemaining: newTimeRemaining,
-        isPaused: newTimeRemaining <= 0 ? true : state.isPaused, // Auto pause at end of round
       };
-    
+
     case 'UPDATE_PRICES': {
-      // Calculate new prices based on current prices and news
       const updatedAssets = state.assets.map(asset => {
         const newPrice = calculateNewPrices(
           asset, 
@@ -227,7 +237,6 @@ function gameReducer(state: GameState, action: Action): GameState {
       let newCash = state.cash;
       const newHoldings = { ...state.holdings };
       
-      // Initialize if not exists
       if (!newHoldings[assetId]) {
         newHoldings[assetId] = {
           quantity: 0,
@@ -242,7 +251,7 @@ function gameReducer(state: GameState, action: Action): GameState {
       switch (tradeAction) {
         case 'buy': {
           const totalCost = amount * price;
-          if (totalCost > newCash) return state; // Not enough cash
+          if (totalCost > newCash) return state;
           
           const newQuantity = holding.quantity + amount;
           const newAverageBuyPrice = (holding.averageBuyPrice * holding.quantity + totalCost) / newQuantity;
@@ -257,7 +266,7 @@ function gameReducer(state: GameState, action: Action): GameState {
         }
         
         case 'sell': {
-          if (amount > holding.quantity) return state; // Can't sell more than owned
+          if (amount > holding.quantity) return state;
           
           const saleProceeds = amount * price;
           const newQuantity = holding.quantity - amount;
@@ -271,7 +280,6 @@ function gameReducer(state: GameState, action: Action): GameState {
         }
         
         case 'short': {
-          // Shorting adds cash as if borrowed and sold
           const shortProceeds = amount * price;
           const newShortQuantity = holding.shortQuantity + amount;
           const newAverageShortPrice = (holding.averageShortPrice * holding.shortQuantity + shortProceeds) / newShortQuantity;
@@ -286,10 +294,10 @@ function gameReducer(state: GameState, action: Action): GameState {
         }
         
         case 'cover': {
-          if (amount > holding.shortQuantity) return state; // Can't cover more than shorted
+          if (amount > holding.shortQuantity) return state;
           
           const coverCost = amount * price;
-          if (coverCost > newCash) return state; // Not enough cash to cover
+          if (coverCost > newCash) return state;
           
           const newShortQuantity = holding.shortQuantity - amount;
           
@@ -317,20 +325,17 @@ function gameReducer(state: GameState, action: Action): GameState {
     }
     
     case 'UPDATE_NET_WORTH': {
-      // Calculate current net worth by adding cash and value of all holdings
       let netWorth = state.cash;
       
       Object.entries(state.holdings).forEach(([assetId, holding]) => {
         const asset = state.assets.find(a => a.id === assetId);
         if (asset) {
-          // Add value of long positions
           netWorth += holding.quantity * asset.price;
           
-          // Subtract value needed to cover shorts
-          netWorth -= holding.shortQuantity * asset.price;
-          
-          // Add cash received from shorts
-          netWorth += holding.shortQuantity * holding.averageShortPrice;
+          if (holding.shortQuantity > 0) {
+            const shortProfit = holding.shortQuantity * (holding.averageShortPrice - asset.price);
+            netWorth += shortProfit;
+          }
         }
       });
       
@@ -343,7 +348,7 @@ function gameReducer(state: GameState, action: Action): GameState {
     default:
       return state;
   }
-}
+};
 
 type GameContextType = {
   state: GameState;
@@ -360,72 +365,65 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(gameReducer, initialGameState);
-  const [lastUpdateTime, setLastUpdateTime] = useState<number | null>(null);
-  
-  // Market tick effect - handles the timer and price updates
+  const [lastTickTime, setLastTickTime] = useState<number | null>(null);
+
   useEffect(() => {
-    if (state.isPaused || state.isGameOver) {
-      return; // Do nothing when paused or game over
-    }
-    
-    const now = Date.now();
-    if (lastUpdateTime === null) {
-      setLastUpdateTime(now);
-      return;
-    }
-    
-    const elapsed = (now - lastUpdateTime) / 1000; // in seconds
-    setLastUpdateTime(now);
-    
-    // Update timer
-    dispatch({ type: 'TICK', payload: elapsed });
-    
-    // Update prices sometimes
-    if (Math.random() < 0.05) { // 5% chance per frame
-      dispatch({ type: 'UPDATE_PRICES' });
-    }
-    
-    // Random market news
-    if (Math.random() < 0.01) { // 1% chance per frame
-      const newsItem = generateMarketNews(state.assets, state.round);
-      dispatch({ type: 'ADD_NEWS', payload: newsItem });
+    let frameId: number;
+
+    const updateTimer = (timestamp: number) => {
+      if (!state.isPaused && !state.isGameOver) {
+        if (lastTickTime === null) {
+          setLastTickTime(timestamp);
+        } else {
+          const deltaTime = (timestamp - lastTickTime) / 1000;
+          dispatch({ type: 'TICK', payload: deltaTime });
+          
+          if (Math.random() < 0.05) {
+            dispatch({ type: 'UPDATE_PRICES' });
+          }
+          
+          if (Math.random() < 0.01) {
+            const newsItem = generateMarketNews(state.assets, state.round);
+            dispatch({ type: 'ADD_NEWS', payload: newsItem });
+            
+            setTimeout(() => {
+              dispatch({ type: 'EXPIRE_NEWS', payload: newsItem.id });
+            }, 15000);
+          }
+
+          if (Math.random() < 0.02) {
+            const healthChange = (Math.random() * 6) - 3;
+            const newHealth = Math.max(0, Math.min(100, state.marketHealth + healthChange));
+            dispatch({ type: 'UPDATE_MARKET_HEALTH', payload: newHealth });
+          }
+
+          setLastTickTime(timestamp);
+        }
+      }
       
-      // News expires after 15 seconds
-      setTimeout(() => {
-        dispatch({ type: 'EXPIRE_NEWS', payload: newsItem.id });
-      }, 15000);
-    }
+      frameId = requestAnimationFrame(updateTimer);
+    };
+
+    frameId = requestAnimationFrame(updateTimer);
     
-    // Update market health with slight random fluctuations
-    if (Math.random() < 0.02) { // 2% chance per frame
-      const healthChange = (Math.random() * 6) - 3; // -3 to +3 change
-      const newHealth = Math.max(0, Math.min(100, state.marketHealth + healthChange));
-      dispatch({ type: 'UPDATE_MARKET_HEALTH', payload: newHealth });
-    }
-    
-    // Occasionally update net worth tracking
-    if (Math.random() < 0.05) { // 5% chance per frame
-      dispatch({ type: 'UPDATE_NET_WORTH' });
-    }
-    
-    // Game loop
-    const frameId = requestAnimationFrame(() => {}); // Just to trigger a new frame
-    return () => cancelAnimationFrame(frameId);
-  }, [state.isPaused, state.isGameOver, lastUpdateTime]);
-  
-  // Calculate net worth
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [state.isPaused, state.isGameOver, lastTickTime]);
+
+  useEffect(() => {
+    setLastTickTime(null);
+  }, [state.isPaused]);
+
   const calculateNetWorth = () => {
     let netWorth = state.cash;
     
     Object.entries(state.holdings).forEach(([assetId, holding]) => {
       const asset = state.assets.find(a => a.id === assetId);
       if (asset) {
-        // Add value of long positions
         netWorth += holding.quantity * asset.price;
         
-        // For short positions, calculate the profit/loss
         if (holding.shortQuantity > 0) {
-          // Profit from shorts = shorted at high price - current price (if lower)
           const shortProfit = holding.shortQuantity * (holding.averageShortPrice - asset.price);
           netWorth += shortProfit;
         }
@@ -434,8 +432,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     return netWorth;
   };
-  
-  // Trade execution wrapper
+
   const executeTrade = (assetId: string, action: TradeAction, amount: number) => {
     const asset = state.assets.find(a => a.id === assetId);
     if (!asset) return;
@@ -445,14 +442,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       payload: { assetId, action, amount, price: asset.price } 
     });
   };
+
+  const startGame = () => {
+    dispatch({ type: 'START_GAME' });
+  };
   
-  // Game control wrappers
-  const startGame = () => dispatch({ type: 'START_GAME' });
-  const pauseGame = () => dispatch({ type: 'PAUSE_GAME' });
-  const resumeGame = () => dispatch({ type: 'RESUME_GAME' });
-  const endGame = () => dispatch({ type: 'END_GAME' });
-  const nextRound = () => dispatch({ type: 'NEXT_ROUND' });
+  const pauseGame = () => {
+    dispatch({ type: 'PAUSE_GAME' });
+  };
   
+  const resumeGame = () => {
+    dispatch({ type: 'RESUME_GAME' });
+  };
+  
+  const endGame = () => {
+    dispatch({ type: 'END_GAME' });
+  };
+  
+  const nextRound = () => {
+    dispatch({ type: 'NEXT_ROUND' });
+  };
+
   const value = {
     state,
     calculateNetWorth,
@@ -463,7 +473,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     endGame,
     nextRound
   };
-  
+
   return (
     <GameContext.Provider value={value}>
       {children}
