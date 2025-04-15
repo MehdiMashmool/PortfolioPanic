@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Area, TooltipProps } from 'recharts';
+import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Area } from 'recharts';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '../utils/marketLogic';
 import { getAssetChartColors } from '../utils/chartUtils';
@@ -19,16 +19,14 @@ interface SparklineChartProps {
   assetType?: string;
 }
 
-const CustomTooltip = ({ active, payload, valuePrefix }: TooltipProps<number, string> & { valuePrefix?: string }) => {
+const CustomTooltip = ({ active, payload, label, valuePrefix }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-panel border border-highlight p-2 rounded-md text-xs shadow-md">
-        <p className="font-medium">{valuePrefix || ''}{formatCurrency(payload[0].value)}</p>
-        {payload[0].payload && payload[0].payload.timestamp && (
-          <p className="text-xs text-gray-400">
-            {typeof payload[0].payload.timestamp === 'number' 
-              ? new Date(payload[0].payload.timestamp).toLocaleTimeString() 
-              : payload[0].payload.timestamp}
+      <div className="chart-tooltip bg-panel border border-highlight p-2 rounded-md shadow-lg">
+        <p className="text-sm font-semibold tooltip-value">{valuePrefix || ''}{formatCurrency(payload[0].value)}</p>
+        {payload[0].payload.timestamp && (
+          <p className="text-xs text-gray-400 tooltip-time">
+            {new Date(payload[0].payload.timestamp).toLocaleTimeString()}
           </p>
         )}
       </div>
@@ -54,11 +52,9 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
     return <div className={cn("h-[30px] w-full", className)} />;
   }
 
-  // Use the reference value if provided, otherwise use the first value in the data
   const startValue = referenceValue !== undefined ? referenceValue : data[0].value;
   const isPositive = data[data.length - 1].value >= startValue;
   
-  // Get color based on asset type and price trend if assetType is provided
   let lineColor = color;
   let areaColor = "";
   
@@ -77,44 +73,20 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
   
-  // Create an enhanced domain to amplify visual changes
-  const valueRange = maxValue - minValue || maxValue * 0.1; // Prevent divide by zero
-  
-  // Use more aggressive padding for small variations to enhance visual differences
+  const valueRange = maxValue - minValue || maxValue * 0.1;
   const smallVariation = valueRange < 0.05 * maxValue;
-  
-  // Apply more aggressive visual amplification
   const paddingFactor = amplifyVisuals 
-    ? (smallVariation ? 0.8 : 0.4)     // More padding when amplification is enabled
-    : (smallVariation ? 0.5 : 0.25);   // Original padding factors
+    ? (smallVariation ? 0.8 : 0.4) 
+    : (smallVariation ? 0.5 : 0.25);
   
   const padding = valueRange * paddingFactor;
   const enhancedMin = Math.max(0, minValue - padding);
-  const enhancedMax = maxValue + padding * 1.2; // Extra padding on top for visual appeal
-  
-  // Gradient for area fill
-  const gradientId = `gradient-${Math.random().toString(36).substring(2, 9)}`;
-  
-  // Configuration for sparklines
-  const sparklineConfig = {
-    lineWidth: 1.5,        // Line thickness
-    showArea: true,        // Fill area under the line
-    showPoints: false,     // Don't show individual data points
-    showAxes: false,       // No axes
-    showGrid: false,       // No grid lines
-  };
+  const enhancedMax = maxValue + padding * 1.2;
   
   return (
     <div className={cn("h-[30px] w-full sparkline-chart", className)}>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={lineColor} stopOpacity={0.3}/>
-              <stop offset="95%" stopColor={lineColor} stopOpacity={0}/>
-            </linearGradient>
-          </defs>
-          
           {showAxes && (
             <>
               <XAxis 
@@ -159,7 +131,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
               dataKey="value" 
               stroke="none" 
               fillOpacity={1} 
-              fill={areaColor || `url(#${gradientId})`} 
+              fill={areaColor} 
               animationDuration={500}
             />
           )}
@@ -167,7 +139,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
             type="monotone"
             dataKey="value"
             stroke={lineColor}
-            strokeWidth={sparklineConfig.lineWidth}
+            strokeWidth={2}
             dot={false}
             activeDot={showTooltip ? { r: 4, stroke: lineColor, strokeWidth: 1, fill: "#1A1F2C" } : false}
             isAnimationActive={true}

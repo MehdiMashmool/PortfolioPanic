@@ -106,31 +106,25 @@ export const updateAssetPriceHistory = (
 };
 
 /**
- * Determine color based on price trend
+ * Determine color based on price trend with enhanced visual style
  */
 export const getAssetChartColors = (assetType: string, prices: number[]) => {
-  // Determine if trend is up or down
   const isPositive = prices.length > 1 ? prices[prices.length-1] >= prices[0] : true;
   
-  // Base color mapping
   const baseColors: Record<string, {positive: string, negative: string}> = {
-    'stock': { positive: '#4A7CFF', negative: '#FF4A7C' },
+    'stock': { positive: '#10B981', negative: '#EF4444' },
     'gold': { positive: '#FFD700', negative: '#D7A700' },
-    'oil': { positive: '#4CAF50', negative: '#EF5350' },
-    'crypto': { positive: '#8A2BE2', negative: '#E22B8A' },
-    // Fallback
+    'oil': { positive: '#10B981', negative: '#EF4444' },
+    'crypto': { positive: '#10B981', negative: '#EF4444' },
     'default': { positive: '#10B981', negative: '#EF4444' }
   };
   
-  // Get appropriate colors
   const colorSet = baseColors[assetType] || baseColors['default'];
   const color = isPositive ? colorSet.positive : colorSet.negative;
   
   return {
     line: color,
-    area: isPositive ? 
-      `${color}20` : 
-      `${color}20`
+    area: `${color}20`
   };
 };
 
