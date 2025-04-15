@@ -7,7 +7,7 @@ import NewsPanel from './NewsPanel';
 import TradeModal from './TradeModal';
 import RoundInfo from './RoundInfo';
 import MarketHealth from './MarketHealth';
-import { Pause, Play, HelpCircle, AlertTriangle } from 'lucide-react';
+import { HelpCircle, AlertTriangle } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
 import { toast } from '@/hooks/use-toast';
 import GameHeader from './GameHeader';
@@ -26,27 +26,9 @@ type SelectedAsset = {
 } | null;
 
 const GameDashboard: React.FC = () => {
-  const { state, pauseGame, resumeGame, endGame } = useGame();
+  const { state, endGame } = useGame();
   const [selectedAsset, setSelectedAsset] = useState<SelectedAsset>(null);
   const [showHint, setShowHint] = useState(true);
-  
-  const toggleGameState = () => {
-    if (state.isPaused) {
-      resumeGame();
-      toast({
-        title: "Game Resumed",
-        description: "The market is live again!",
-        duration: 2000
-      });
-    } else {
-      pauseGame();
-      toast({
-        title: "Game Paused",
-        description: "Market activity is now paused",
-        duration: 2000
-      });
-    }
-  };
 
   // Show hint for first-time users
   useEffect(() => {
@@ -154,22 +136,11 @@ const GameDashboard: React.FC = () => {
                 Game Progress
               </h2>
               <RoundInfo />
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={toggleGameState}
-                  className="flex items-center justify-center bg-panel border-panel-light hover:bg-panel-light"
-                >
-                  {state.isPaused ? (
-                    <><Play className="mr-2 h-4 w-4 text-green-400" /> Resume</>
-                  ) : (
-                    <><Pause className="mr-2 h-4 w-4" /> Pause</>
-                  )}
-                </Button>
+              <div>
                 <Button 
                   variant="destructive"
                   onClick={endGame}
-                  className="bg-red-900/50 hover:bg-red-900/80 text-white border border-red-700/50"
+                  className="w-full bg-red-900/50 hover:bg-red-900/80 text-white border border-red-700/50"
                 >
                   End Game
                 </Button>

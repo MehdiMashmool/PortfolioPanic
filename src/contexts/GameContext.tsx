@@ -6,6 +6,7 @@ import { initialGameState } from '../constants/gameInitialState';
 import { showAchievementToast } from '../components/AchievementToast';
 import { AchievementType } from '../components/AchievementBadge';
 import { supabase } from '../integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 type GameContextType = {
   state: GameState;
@@ -178,13 +179,34 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const startGame = () => dispatch({ type: 'START_GAME' });
-  const endGame = () => dispatch({ type: 'END_GAME' });
+  const startGame = () => {
+    dispatch({ type: 'START_GAME' });
+    toast({
+      title: "Game Started",
+      description: "Good luck, trader!",
+      duration: 2000
+    });
+  };
+
+  const endGame = () => {
+    dispatch({ type: 'END_GAME' });
+    toast({
+      title: "Game Over",
+      description: "Your trading session has ended.",
+      duration: 2000
+    });
+  };
+
   const nextRound = () => {
     if (state.round >= 10) {
       endGame();
     } else {
       dispatch({ type: 'NEXT_ROUND' });
+      toast({
+        title: `Round ${state.round + 1}`,
+        description: "A new round begins!",
+        duration: 2000
+      });
     }
   };
 
