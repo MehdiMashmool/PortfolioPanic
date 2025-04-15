@@ -41,8 +41,8 @@ export const showAchievementToast = (achievement: AchievementType) => {
   const { title, description } = achievements[achievement];
 
   toast.custom((t) => {
-    // Handle the case where t might be null
-    const isVisible = t && typeof t === 'object' && 'visible' in t ? t.visible : true;
+    // Add a type guard to ensure t is an object with visible property
+    const isVisible = t !== null && typeof t === 'object' && 'visible' in t ? t.visible : true;
     
     return (
       <div className={`
