@@ -1,10 +1,10 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useGame } from '../contexts/GameContext';
 import { Button } from './ui/button';
 import AssetPanel from './AssetPanel';
 import { ChevronRight } from 'lucide-react';
-import { generateEnhancedSparklineData } from '../utils/chartUtils';
+import { initAssetPriceHistory, updateAssetPriceHistory } from '../utils/chartUtils';
 
 interface AssetListProps {
   onAssetClick: (id: string, name: string) => void;
@@ -12,6 +12,14 @@ interface AssetListProps {
 
 const AssetList = ({ onAssetClick }: AssetListProps) => {
   const { state } = useGame();
+  
+  // Initialize and update asset price history on mount and when prices change
+  useEffect(() => {
+    state.assets.forEach(asset => {
+      // Initialize price history for each asset if not already done
+      updateAssetPriceHistory(asset.id, asset.price);
+    });
+  }, [state.assets]);
 
   return (
     <div className="space-y-4">
@@ -33,7 +41,6 @@ const AssetList = ({ onAssetClick }: AssetListProps) => {
             key={asset.id}
             asset={asset}
             onClick={() => onAssetClick(asset.id, asset.name)}
-            priceHistory={generateEnhancedSparklineData(asset)}
           />
         ))}
       </div>

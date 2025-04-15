@@ -50,6 +50,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   amplifyVisuals = true,
   assetType
 }) => {
+  // Don't render if there's no data
   if (!data || data.length === 0) {
     return <div className={cn("h-[30px] w-full", className)} />;
   }
@@ -84,7 +85,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   const padding = valueRange * paddingFactor;
   const enhancedMin = Math.max(0, minValue - padding * 1.5);
   const enhancedMax = maxValue + padding * 2;
-  
+
   return (
     <div className={cn("h-[30px] w-full sparkline-chart", className)}>
       <ResponsiveContainer width="100%" height={height}>

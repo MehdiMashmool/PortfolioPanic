@@ -7,6 +7,7 @@ import { showAchievementToast } from '../components/AchievementToast';
 import { AchievementType } from '../components/AchievementBadge';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { updateAssetPriceHistory, updatePortfolioHistory } from '../utils/chartUtils';
 
 type GameContextType = {
   state: GameState;
@@ -44,6 +45,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Update prices every 3 seconds
           if (now - lastPriceUpdate >= 3000) {
             dispatch({ type: 'UPDATE_PRICES' });
+            
+            // Update asset price history charts
+            state.assets.forEach(asset => {
+              updateAssetPriceHistory(asset.id, asset.price, now);
+            });
+            
             setLastPriceUpdate(now);
           }
           
@@ -68,7 +75,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           // Update net worth every 3 seconds
           if (now - lastNetWorthUpdate >= 3000) {
+            const netWorth = calculateNetWorth();
             dispatch({ type: 'UPDATE_NET_WORTH' });
+            updatePortfolioHistory(netWorth, now);
             setLastNetWorthUpdate(now);
           }
 
@@ -84,7 +93,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [state.isGameOver, lastTickTime, lastPriceUpdate, lastNetWorthUpdate, lastNewsUpdate]);
+  }, [state.isGameOver, lastTickTime, lastPriceUpdate, lastNetWorthUpdate, lastNewsUpdate, state.assets]);
 
   useEffect(() => {
     const saveHighScore = async () => {
@@ -188,6 +197,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const startGame = () => {
     dispatch({ type: 'START_GAME' });
+    
+    // Initialize price history for all assets
+    state.assets.forEach(asset => {
+      updateAssetPriceHistory(asset.id, asset.price);
+    });
+    
     toast({
       title: "Game Started",
       description: "Good luck, trader!",

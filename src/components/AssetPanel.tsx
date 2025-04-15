@@ -1,12 +1,12 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { Asset } from '../types/game';
 import { formatCurrency, getPriceChangeColor } from '../utils/marketLogic';
 import { Card, CardContent } from './ui/card';
 import { ArrowUp, ArrowDown, TrendingUp, ArrowRight } from 'lucide-react';
 import SparklineChart from './SparklineChart';
 import { Button } from './ui/button';
-import { generateEnhancedSparklineData } from '../utils/chartUtils';
+import { assetPriceHistory } from '../utils/chartUtils';
 
 interface AssetPanelProps {
   asset: Asset;
@@ -14,15 +14,18 @@ interface AssetPanelProps {
   priceHistory?: Array<{ value: number; timestamp?: number }>;
 }
 
-const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory = [] }) => {
+const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory }) => {
   const priceChange = asset.price - asset.previousPrice;
   const priceChangePercent = (priceChange / asset.previousPrice) * 100;
   const priceChangeColor = getPriceChangeColor(priceChange);
   
-  // Use provided history or generate enhanced data
-  const sparklineData = priceHistory.length > 0 ? 
-    priceHistory : 
-    generateEnhancedSparklineData(asset);
+  // Use stored price history data with 3-second interval or fallback to priceHistory prop
+  const sparklineData = useMemo(() => {
+    if (assetPriceHistory[asset.id]?.data?.length > 0) {
+      return assetPriceHistory[asset.id].data;
+    }
+    return priceHistory || [];
+  }, [asset.id, priceHistory, assetPriceHistory]);
   
   const getVolatilityLevel = (volatility: number) => {
     if (volatility >= 0.7) return 'Very High';
