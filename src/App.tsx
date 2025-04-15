@@ -37,7 +37,15 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }, []);
 
   if (isAuthenticated === null) {
-    return null; // or loading spinner
+    // Show loading state
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-lg">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
@@ -57,11 +65,9 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<MainMenu />} />
           <Route path="/game" element={
-            <ProtectedRoute>
-              <GameProvider>
-                <GameDashboard />
-              </GameProvider>
-            </ProtectedRoute>
+            <GameProvider>
+              <GameDashboard />
+            </GameProvider>
           } />
           <Route path="/how-to-play" element={<HowToPlay />} />
           <Route path="/achievements" element={

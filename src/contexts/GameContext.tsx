@@ -38,6 +38,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const deltaTime = (timestamp - lastTickTime) / 1000;
           dispatch({ type: 'TICK', payload: deltaTime });
           
+          // Limit how often prices update to prevent visual jumps
           if (Math.random() < 0.05) {
             dispatch({ type: 'UPDATE_PRICES' });
           }
@@ -131,6 +132,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const executeTrade = (assetId: string, action: TradeAction, amount: number) => {
+    if (state.isGameOver) return; // Prevent trades after game over
+    
     const asset = state.assets.find(a => a.id === assetId);
     if (!asset) return;
     
@@ -156,7 +159,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const pauseGame = () => dispatch({ type: 'PAUSE_GAME' });
   const resumeGame = () => dispatch({ type: 'RESUME_GAME' });
   const endGame = () => dispatch({ type: 'END_GAME' });
-  const nextRound = () => dispatch({ type: 'NEXT_ROUND' });
+  const nextRound = () => {
+    if (state.round >= 10) {
+      endGame();
+    } else {
+      dispatch({ type: 'NEXT_ROUND' });
+    }
+  };
 
   const value = {
     state,

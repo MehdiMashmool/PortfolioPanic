@@ -1,3 +1,4 @@
+
 import type { Asset, NewsItem } from '../types/game';
 
 // Calculate new price based on previous price, volatility, and news
@@ -33,7 +34,8 @@ export const calculateNewPrices = (
   const totalEffect = (1 + randomChange + marketEffect + newsEffect);
   
   // Calculate new price with a minimum floor to prevent negative prices
-  const newPrice = Math.max(asset.price * totalEffect, 0.1);
+  // Add a maximum cap to prevent unrealistic prices (100,000)
+  const newPrice = Math.max(Math.min(asset.price * totalEffect, 100000), 0.1);
   
   // Round to 2 decimal places for display
   return Math.round(newPrice * 100) / 100;
@@ -59,12 +61,36 @@ export const calculateReturnPercentage = (
 
 // Function to format currency
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+  // For very large numbers, use abbreviations (K, M, B)
+  if (Math.abs(amount) >= 1000000000) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount / 1000000000) + 'B';
+  } else if (Math.abs(amount) >= 1000000) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount / 1000000) + 'M';
+  } else if (Math.abs(amount) >= 1000) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } else {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  }
 };
 
 // Format large numbers with k/m/b suffixes
