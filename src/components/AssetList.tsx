@@ -1,10 +1,9 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useGame } from '../contexts/GameContext';
 import { Button } from './ui/button';
 import AssetPanel from './AssetPanel';
 import { ChevronRight } from 'lucide-react';
-import { initAssetPriceHistory } from '../utils/chartUtils';
 
 interface AssetListProps {
   onAssetClick: (id: string, name: string) => void;
@@ -13,14 +12,6 @@ interface AssetListProps {
 const AssetList = ({ onAssetClick }: AssetListProps) => {
   const { state } = useGame();
   
-  // Initialize asset price history on mount
-  useEffect(() => {
-    // Initialize price history for each asset only once when component mounts
-    state.assets.forEach(asset => {
-      initAssetPriceHistory(asset.id, asset.price);
-    });
-  }, []); // Empty dependency array ensures this only runs once on mount
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">

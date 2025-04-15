@@ -86,6 +86,15 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   const enhancedMin = Math.max(0, minValue - padding * 1.5);
   const enhancedMax = maxValue + padding * 2;
 
+  // Calculate time domain for X-axis to ensure proper historical view
+  let timeMin = data[0]?.timestamp || Date.now();
+  let timeMax = data[data.length - 1]?.timestamp || Date.now();
+  
+  // Ensure we have a reasonable time range for the x-axis
+  if (timeMax - timeMin < 60000) { // Less than 1 minute
+    timeMin = timeMax - 60000; // Show at least 1 minute of data
+  }
+
   return (
     <div className={cn("h-[30px] w-full sparkline-chart", className)}>
       <ResponsiveContainer width="100%" height={height}>
@@ -108,7 +117,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
                 axisLine={{ stroke: '#2A303C' }}
                 tickFormatter={(value) => new Date(value).toLocaleTimeString()}
                 type="number"
-                domain={['dataMin', 'dataMax']}
+                domain={[timeMin, timeMax]}
                 scale="time"
               />
               <YAxis 
@@ -129,7 +138,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
               <XAxis 
                 dataKey="timestamp"
                 type="number"
-                domain={['dataMin', 'dataMax']}
+                domain={[timeMin, timeMax]}
                 hide={true}
                 scale="time"
               />

@@ -33,6 +33,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Strict 3-second update interval for price updates
   const PRICE_UPDATE_INTERVAL = 3000;
 
+  // Initialize price history on mount
+  useEffect(() => {
+    // Initialize price history for each asset only once when component mounts
+    state.assets.forEach(asset => {
+      updateAssetPriceHistory(asset.id, asset.price, Date.now());
+    });
+  }, []); // Empty dependency array ensures this only runs once on mount
+
   useEffect(() => {
     let frameId: number;
 
