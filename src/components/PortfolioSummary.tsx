@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGame } from '../contexts/GameContext';
 import { Card, CardContent } from './ui/card';
@@ -6,6 +5,7 @@ import PortfolioValue from './portfolio/PortfolioValue';
 import InvestmentSummary from './portfolio/InvestmentSummary';
 import AllocationSection from './portfolio/AllocationSection';
 import PerformanceSection from './portfolio/PerformanceSection';
+import SparklineChart from './charts/SparklineChart';
 
 const PortfolioSummary = () => {
   const { state } = useGame();

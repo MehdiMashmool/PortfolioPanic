@@ -1,10 +1,9 @@
-
 import React, { useMemo } from 'react';
 import type { Asset } from '../types/game';
 import { formatCurrency, getPriceChangeColor } from '../utils/marketLogic';
 import { Card, CardContent } from './ui/card';
 import { ArrowUp, ArrowDown, TrendingUp, ArrowRight } from 'lucide-react';
-import SparklineChart from './SparklineChart';
+import SparklineChart from './charts/SparklineChart';
 import { Button } from './ui/button';
 import { assetPriceHistory } from '../utils/chartUtils';
 
