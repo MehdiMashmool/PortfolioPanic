@@ -59,6 +59,12 @@ export const initAssetPriceHistory = (assetId: string, initialPrice: number) => 
 };
 
 /**
+ * Enforce a 3-second update interval for all chart updates
+ */
+const UPDATE_INTERVAL = 3000;
+let lastGraphUpdate = 0;
+
+/**
  * Update function called when new price data arrives
  */
 export const updateAssetPriceHistory = (
@@ -235,6 +241,3 @@ export const generateEnhancedSparklineData = (
   
   return history;
 };
-
-const UPDATE_INTERVAL = 3000; // 3 seconds between updates
-let lastGraphUpdate = 0;
