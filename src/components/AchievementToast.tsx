@@ -41,9 +41,11 @@ export const showAchievementToast = (achievement: AchievementType) => {
   const { title, description } = achievements[achievement];
 
   toast.custom((t) => (
-    <div className={`${
-      t.visible ? 'animate-enter' : 'animate-leave'
-    } max-w-md w-full bg-gradient-to-br from-[#1A1F2C] to-[#0F172A] shadow-lg rounded-lg pointer-events-auto overflow-hidden`}>
+    <div className={`
+      ${t && typeof t === 'object' && 't' in t ? 
+        (t.visible ? 'animate-enter' : 'animate-leave') : 
+        'animate-enter'
+      } max-w-md w-full bg-gradient-to-br from-[#1A1F2C] to-[#0F172A] shadow-lg rounded-lg pointer-events-auto overflow-hidden`}>
       <div className="p-4 flex items-center">
         <div className="flex-shrink-0 mr-3">
           <AchievementBadge type={achievement} unlocked={true} showTooltip={false} />
