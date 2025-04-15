@@ -1,3 +1,4 @@
+
 export type Asset = {
   id: string;
   name: string;
@@ -45,10 +46,4 @@ export type GameState = {
   marketHealth: number;
 };
 
-export type {
-  Asset,
-  Holdings,
-  NewsItem,
-  TradeAction,
-  GameState
-};
+// Removed the redundant export type block
