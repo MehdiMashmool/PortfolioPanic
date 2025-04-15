@@ -10,6 +10,7 @@ import HowToPlay from "./pages/HowToPlay";
 import Achievements from "./pages/Achievements";
 import GameDashboard from "./components/GameDashboard";
 import NotFound from "./pages/NotFound";
+import { GameProvider } from "./contexts/GameContext";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +22,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<MainMenu />} />
-          <Route path="/game" element={<GameDashboard />} />
+          <Route path="/game" element={
+            <GameProvider>
+              <GameDashboard />
+            </GameProvider>
+          } />
           <Route path="/how-to-play" element={<HowToPlay />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="*" element={<NotFound />} />
