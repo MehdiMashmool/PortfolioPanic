@@ -1,5 +1,5 @@
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
 
@@ -17,11 +17,11 @@ interface PerformanceChartProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-panel border border-highlight p-2 rounded-md shadow-lg">
+      <div className="chart-tooltip bg-panel border border-highlight p-2 rounded-md shadow-lg">
         <p className="text-sm font-medium">{`Round ${label}`}</p>
-        <p className="text-sm font-semibold">{formatCurrency(payload[0].value)}</p>
+        <p className="text-sm font-semibold tooltip-value">{formatCurrency(payload[0].value)}</p>
         {payload[0].payload.timestamp && (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 tooltip-time">
             {new Date(payload[0].payload.timestamp).toLocaleTimeString()}
           </p>
         )}
@@ -96,14 +96,27 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
   
   const yAxisTicks = calculateYAxisTicks();
   
+  // Main portfolio chart configuration
+  const portfolioChartConfig = {
+    lineWidth: 2,       // Thicker line than sparklines
+    showArea: true,     // Show area fill
+    showPoints: false,  // Don't show points by default (only on hover)
+    showGrid: {         // Only show horizontal grid
+      x: false,
+      y: true
+    },
+    // Show reference line at starting value
+    showStartingValue: true,
+  };
+  
   return (
-    <div className="h-full w-full" style={{ height }}>
+    <div className="h-full w-full portfolio-chart" style={{ height }}>
       <ChartContainer className="h-full" config={config}>
         <LineChart
           data={formattedData}
           margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
         >
-          <CartesianGrid vertical={false} stroke="#2A303C" strokeDasharray="3 3" />
+          <CartesianGrid vertical={false} stroke="#2A303C" strokeDasharray="3 3" className="grid" />
           <XAxis 
             dataKey="round"
             tick={{ fill: '#8E9196' }}
@@ -116,6 +129,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
               fill: '#8E9196',
               fontSize: 12
             }}
+            className="axis"
           />
           <YAxis 
             domain={[enhancedMin, enhancedMax]}
@@ -125,32 +139,66 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
             width={60}
+            className="axis"
           />
           <Tooltip content={<CustomTooltip />} />
           
           {/* Starting reference line */}
-          <ReferenceLine
-            y={startValue}
-            stroke="#6B7280"
-            strokeWidth={1}
-            strokeDasharray="3 3"
-            label={{
-              value: `Start: ${formatCurrency(startValue)}`,
-              position: 'left',
-              fill: '#8E9196',
-              fontSize: 12
-            }}
-          />
+          {portfolioChartConfig.showStartingValue && (
+            <ReferenceLine
+              y={startValue}
+              stroke="#6B7280"
+              strokeWidth={1}
+              strokeDasharray="3 3"
+              className="reference"
+              label={{
+                value: `Start: ${formatCurrency(startValue)}`,
+                position: 'left',
+                fill: '#8E9196',
+                fontSize: 12
+              }}
+            />
+          )}
+          
+          {/* Area under the line */}
+          {portfolioChartConfig.showArea && (
+            <defs>
+              <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop 
+                  offset="5%" 
+                  stopColor={isPositive ? '#10B981' : '#EF4444'} 
+                  stopOpacity={0.3}
+                />
+                <stop 
+                  offset="95%" 
+                  stopColor={isPositive ? '#10B981' : '#EF4444'} 
+                  stopOpacity={0}
+                />
+              </linearGradient>
+            </defs>
+          )}
+          
+          {portfolioChartConfig.showArea && (
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="none"
+              fill="url(#portfolioGradient)"
+              fillOpacity={1}
+              className="area"
+            />
+          )}
           
           <Line
             name="portfolio"
             type="monotone"
             dataKey="value"
             stroke={isPositive ? '#10B981' : '#EF4444'}
-            strokeWidth={2}
+            strokeWidth={portfolioChartConfig.lineWidth}
             dot={{ fill: '#1A1F2C', stroke: isPositive ? '#10B981' : '#EF4444', strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6, fill: isPositive ? '#10B981' : '#EF4444' }}
             animationDuration={800}
+            className="line"
           />
         </LineChart>
       </ChartContainer>

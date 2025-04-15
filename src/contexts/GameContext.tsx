@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { generateMarketNews } from '../utils/newsGenerator';
 import { GameState, TradeAction } from '../types/game';
@@ -24,6 +25,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [state, dispatch] = useReducer(gameReducer, initialGameState);
   const [lastTickTime, setLastTickTime] = useState<number | null>(null);
   const [lastNetWorthUpdate, setLastNetWorthUpdate] = useState<number>(0);
+  const [lastNewsUpdate, setLastNewsUpdate] = useState<number>(0);
   const [achievementsUnlocked, setAchievementsUnlocked] = useState<Set<AchievementType>>(new Set());
 
   useEffect(() => {
@@ -42,13 +44,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             dispatch({ type: 'UPDATE_PRICES' });
           }
           
-          if (Math.random() < 0.01) {
+          // Generate news every 10 seconds instead of randomly
+          const now = Date.now();
+          if (now - lastNewsUpdate > 10000) {
             const newsItem = generateMarketNews(state.assets, state.round);
             dispatch({ type: 'ADD_NEWS', payload: newsItem });
             
             setTimeout(() => {
               dispatch({ type: 'EXPIRE_NEWS', payload: newsItem.id });
             }, 15000);
+            
+            setLastNewsUpdate(now);
           }
 
           if (Math.random() < 0.02) {
@@ -58,7 +64,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
 
           // Update net worth every 5 seconds
-          const now = Date.now();
           if (now - lastNetWorthUpdate > 5000) {
             dispatch({ type: 'UPDATE_NET_WORTH' });
             setLastNetWorthUpdate(now);
@@ -76,7 +81,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [state.isGameOver, lastTickTime, lastNetWorthUpdate]);
+  }, [state.isGameOver, lastTickTime, lastNetWorthUpdate, lastNewsUpdate]);
 
   // Store high score when game ends
   useEffect(() => {
@@ -136,6 +141,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     setLastTickTime(null);
+    setLastNewsUpdate(0);
   }, []);
 
   const calculateNetWorth = () => {
