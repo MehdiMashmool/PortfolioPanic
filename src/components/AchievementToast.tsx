@@ -40,26 +40,29 @@ export const showAchievementToast = (achievement: AchievementType) => {
 
   const { title, description } = achievements[achievement];
 
-  toast.custom((t) => (
-    <div className={`
-      ${t && typeof t === 'object' && 't' in t ? 
-        (t.visible ? 'animate-enter' : 'animate-leave') : 
-        'animate-enter'
-      } max-w-md w-full bg-gradient-to-br from-[#1A1F2C] to-[#0F172A] shadow-lg rounded-lg pointer-events-auto overflow-hidden`}>
-      <div className="p-4 flex items-center">
-        <div className="flex-shrink-0 mr-3">
-          <AchievementBadge type={achievement} unlocked={true} showTooltip={false} />
-        </div>
-        <div className="ml-2 flex-1">
-          <div className="font-medium text-white flex items-center">
-            <Trophy size={16} className="mr-1 text-amber-400" />
-            <span>{title}</span>
+  toast.custom((t) => {
+    // Handle the case where t might be null
+    const isVisible = t && typeof t === 'object' && 'visible' in t ? t.visible : true;
+    
+    return (
+      <div className={`
+        ${isVisible ? 'animate-enter' : 'animate-leave'}
+        max-w-md w-full bg-gradient-to-br from-[#1A1F2C] to-[#0F172A] shadow-lg rounded-lg pointer-events-auto overflow-hidden`}>
+        <div className="p-4 flex items-center">
+          <div className="flex-shrink-0 mr-3">
+            <AchievementBadge type={achievement} unlocked={true} showTooltip={false} />
           </div>
-          <p className="text-sm text-gray-300">{description}</p>
+          <div className="ml-2 flex-1">
+            <div className="font-medium text-white flex items-center">
+              <Trophy size={16} className="mr-1 text-amber-400" />
+              <span>{title}</span>
+            </div>
+            <p className="text-sm text-gray-300">{description}</p>
+          </div>
         </div>
       </div>
-    </div>
-  ), { duration: 5000 });
+    );
+  }, { duration: 5000 });
 };
 
 const AchievementToast: React.FC<AchievementToastProps> = ({ type, title, description }) => {
