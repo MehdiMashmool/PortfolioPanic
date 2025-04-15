@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -73,6 +74,7 @@ export default {
           green: "#22C55E",
           red: "#EF4444",
         },
+        highlight: "#2563EB",
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -109,6 +111,21 @@ export default {
         'fade-in': {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' }
+        },
+        'glow': {
+          '0%': { 
+            textShadow: '0 0 5px rgba(255,255,255,0.1)' 
+          },
+          '50%': { 
+            textShadow: '0 0 20px rgba(255,255,255,0.4)' 
+          },
+          '100%': { 
+            textShadow: '0 0 5px rgba(255,255,255,0.1)' 
+          }
+        },
+        'pulse-gentle': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' }
         }
       },
       animation: {
@@ -116,11 +133,18 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         'price-up': 'price-up 1s ease-out',
         'price-down': 'price-down 1s ease-out',
-        'fade-in': 'fade-in 0.5s ease-out'
+        'fade-in': 'fade-in 0.5s ease-out',
+        'glow': 'glow 2s ease-in-out infinite',
+        'pulse-gentle': 'pulse-gentle 3s infinite'
       },
       backgroundImage: {
         'gradient-dark': 'linear-gradient(180deg, rgba(30,41,59,0.5) 0%, rgba(15,23,42,0) 100%)',
+        'gradient-subtle': 'linear-gradient(180deg, rgba(30,41,59,0.2) 0%, rgba(15,23,42,0.05) 100%)',
       },
+      boxShadow: {
+        'glow-green': '0 0 10px rgba(16, 185, 129, 0.5)',
+        'glow-red': '0 0 10px rgba(239, 68, 68, 0.5)',
+      }
     }
   },
   plugins: [require("tailwindcss-animate")],
