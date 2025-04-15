@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+        profit: "#10B981",
+        loss: "#EF4444",
+        neutral: "#8E9196",
+        dark: "#1A1F2C",
+        panel: "#222836",
+        highlight: "#3A424E",
+        gold: "#FFC107",
+        oil: "#6B7280",
+        crypto: "#8B5CF6",
+        stock: "#3B82F6"
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +95,28 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+        'price-up': {
+          '0%': { color: 'white' },
+          '50%': { color: 'hsl(142, 71%, 45%)' },
+          '100%': { color: 'white' }
+        },
+        'price-down': {
+          '0%': { color: 'white' },
+          '50%': { color: 'hsl(0, 84%, 60%)' },
+          '100%': { color: 'white' }
+        },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+        'price-up': 'price-up 1s ease-out',
+        'price-down': 'price-down 1s ease-out',
+        'fade-in': 'fade-in 0.5s ease-out'
 			}
 		}
 	},
