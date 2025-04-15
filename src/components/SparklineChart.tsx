@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, TooltipProps } from 'recharts';
+import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Area, TooltipProps } from 'recharts';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '../utils/marketLogic';
 
@@ -14,13 +14,21 @@ interface SparklineChartProps {
   valuePrefix?: string;
   areaFill?: boolean;
   referenceValue?: number;
+  amplifyVisuals?: boolean;
 }
 
 const CustomTooltip = ({ active, payload, valuePrefix }: TooltipProps<number, string> & { valuePrefix?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-panel border border-highlight p-2 rounded-md text-xs shadow-md">
-        <p className="font-medium">{valuePrefix || ''}{payload[0].value.toLocaleString()}</p>
+        <p className="font-medium">{valuePrefix || ''}{formatCurrency(payload[0].value)}</p>
+        {payload[0].payload && payload[0].payload.timestamp && (
+          <p className="text-xs text-gray-400">
+            {typeof payload[0].payload.timestamp === 'number' 
+              ? new Date(payload[0].payload.timestamp).toLocaleTimeString() 
+              : payload[0].payload.timestamp}
+          </p>
+        )}
       </div>
     );
   }
@@ -37,6 +45,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   valuePrefix = '',
   areaFill = false,
   referenceValue,
+  amplifyVisuals = true,
 }) => {
   if (!data || data.length === 0) {
     return <div className={cn("h-[30px] w-full", className)} />;
@@ -54,15 +63,33 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   
   // Create an enhanced domain to amplify visual changes
   const valueRange = maxValue - minValue || maxValue * 0.1; // Prevent divide by zero
-  const paddingFactor = valueRange < 0.01 * maxValue ? 0.5 : 0.25; // More padding for small variations
+  
+  // Use more aggressive padding for small variations to enhance visual differences
+  const smallVariation = valueRange < 0.05 * maxValue;
+  
+  // Apply more aggressive visual amplification
+  const paddingFactor = amplifyVisuals 
+    ? (smallVariation ? 0.8 : 0.4)     // More padding when amplification is enabled
+    : (smallVariation ? 0.5 : 0.25);   // Original padding factors
+  
   const padding = valueRange * paddingFactor;
   const enhancedMin = Math.max(0, minValue - padding);
-  const enhancedMax = maxValue + padding;
-
+  const enhancedMax = maxValue + padding * 1.2; // Extra padding on top for visual appeal
+  
+  // Gradient for area fill
+  const gradientId = `gradient-${Math.random().toString(36).substring(2, 9)}`;
+  
   return (
     <div className={cn("h-[30px] w-full", className)}>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={lineColor} stopOpacity={0.3}/>
+              <stop offset="95%" stopColor={lineColor} stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          
           {showAxes && (
             <>
               <XAxis 
@@ -93,14 +120,22 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
             />
           )}
           {referenceValue !== undefined && (
-            <Line
-              type="monotone"
-              dataKey={() => referenceValue}
+            <ReferenceLine
+              y={referenceValue}
               stroke="#6B7280"
               strokeWidth={1}
               strokeDasharray="3 3"
-              dot={false}
-              isAnimationActive={false}
+              ifOverflow="extendDomain"
+            />
+          )}
+          {areaFill && (
+            <Area 
+              type="monotone" 
+              dataKey="value" 
+              stroke="none" 
+              fillOpacity={1} 
+              fill={`url(#${gradientId})`} 
+              animationDuration={500}
             />
           )}
           <Line
@@ -112,6 +147,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
             activeDot={showTooltip ? { r: 4, stroke: lineColor, strokeWidth: 1, fill: "#1A1F2C" } : false}
             isAnimationActive={true}
             connectNulls={true}
+            animationDuration={500}
           />
         </LineChart>
       </ResponsiveContainer>

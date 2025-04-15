@@ -21,9 +21,9 @@ const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory = 
   // Generate data for sparkline if not provided
   const generateMockSparklineData = () => {
     // Create fluctuating data with significant variations
-    return Array(10).fill(0).map((_, i) => {
-      // Create more dramatic price movements (±15-20%)
-      const randomFactor = 0.85 + (Math.random() * 0.3);
+    return Array(15).fill(0).map((_, i) => {
+      // Create more dramatic price movements (±20-30%) for better visual impact
+      const randomFactor = 0.8 + (Math.random() * 0.4);
       return { value: asset.price * randomFactor };
     });
   };
@@ -72,6 +72,16 @@ const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory = 
       default: return 'text-gray-500';
     }
   };
+
+  const getAssetColor = (color: string) => {
+    switch (color) {
+      case 'stock': return '#3B82F6';
+      case 'gold': return '#F59E0B';
+      case 'oil': return '#6B7280';
+      case 'crypto': return '#8B5CF6';
+      default: return '#10B981';
+    }
+  };
   
   return (
     <Card 
@@ -104,10 +114,11 @@ const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory = 
           <div className="text-xs text-neutral mb-1">24h Change</div>
           <SparklineChart 
             data={sparklineData} 
-            color={asset.color === 'stock' ? '#3B82F6' : 
-                 asset.color === 'gold' ? '#F59E0B' : 
-                 asset.color === 'oil' ? '#6B7280' : '#8B5CF6'} 
+            color={getAssetColor(asset.color)}
             referenceValue={asset.previousPrice}
+            areaFill={true}
+            amplifyVisuals={true}
+            height={40}
           />
         </div>
         

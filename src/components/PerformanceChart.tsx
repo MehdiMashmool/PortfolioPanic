@@ -1,5 +1,5 @@
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
 
@@ -56,11 +56,15 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
   
   // Create a narrower domain to amplify visual changes
   const valueRange = maxValue - minValue || maxValue * 0.1; // Prevent divide by zero
+  
   // Use more padding for small variations (common early in game)
-  const paddingFactor = valueRange < 0.01 * maxValue ? 0.2 : 0.15; 
+  const smallVariation = valueRange < 0.02 * maxValue;
+  const paddingFactor = smallVariation ? 0.4 : 0.2;
   const padding = valueRange * paddingFactor;
+  
+  // Set enhanced min/max with extra padding
   const enhancedMin = Math.max(0, minValue - padding);
-  const enhancedMax = maxValue + padding;
+  const enhancedMax = maxValue + padding * 1.2; // Extra padding on top
   
   const config = {
     portfolio: {
@@ -68,6 +72,29 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
       color: isPositive ? '#10B981' : '#EF4444',
     },
   };
+
+  // Determine ticks for Y axis (between 4-7 ticks based on range)
+  const calculateYAxisTicks = () => {
+    const range = enhancedMax - enhancedMin;
+    const tickCount = range > 10000 ? 6 : 5; // More ticks for larger ranges
+    const tickInterval = range / tickCount;
+    
+    // Round to a nice number
+    let niceInterval = Math.pow(10, Math.floor(Math.log10(tickInterval)));
+    if (tickInterval / niceInterval >= 5) niceInterval *= 5;
+    else if (tickInterval / niceInterval >= 2) niceInterval *= 2;
+    
+    const ticks = [];
+    let tick = Math.ceil(enhancedMin / niceInterval) * niceInterval;
+    while (tick <= enhancedMax) {
+      ticks.push(tick);
+      tick += niceInterval;
+    }
+    
+    return ticks;
+  };
+  
+  const yAxisTicks = calculateYAxisTicks();
   
   return (
     <div className="h-full w-full" style={{ height }}>
@@ -85,6 +112,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
           />
           <YAxis 
             domain={[enhancedMin, enhancedMax]}
+            ticks={yAxisTicks}
             tickFormatter={(value) => formatCurrency(value).replace('$', '')}
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
@@ -92,18 +120,21 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
             width={60}
           />
           <Tooltip content={<CustomTooltip />} />
-          {/* Optional starting reference line */}
-          <Line
-            name="reference"
-            type="monotone"
-            dataKey={() => startValue}
+          
+          {/* Starting reference line */}
+          <ReferenceLine
+            y={startValue}
             stroke="#6B7280"
             strokeWidth={1}
             strokeDasharray="3 3"
-            dot={false}
-            activeDot={false}
-            isAnimationActive={false}
+            label={{
+              value: `Start: ${formatCurrency(startValue)}`,
+              position: 'left',
+              fill: '#8E9196',
+              fontSize: 12
+            }}
           />
+          
           <Line
             name="portfolio"
             type="monotone"
@@ -112,6 +143,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
             strokeWidth={2}
             dot={{ fill: '#1A1F2C', stroke: isPositive ? '#10B981' : '#EF4444', strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6, fill: isPositive ? '#10B981' : '#EF4444' }}
+            animationDuration={800}
           />
         </LineChart>
       </ChartContainer>
