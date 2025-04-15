@@ -43,24 +43,30 @@ const PortfolioSummary = () => {
   return (
     <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl relative overflow-hidden">
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <PortfolioValue 
-            netWorth={netWorth}
-            netWorthChange={netWorthChange}
-            netWorthPercentChange={netWorthPercentChange}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-4">
+            <PortfolioValue 
+              netWorth={netWorth}
+              netWorthChange={netWorthChange}
+              netWorthPercentChange={netWorthPercentChange}
+            />
+          </div>
           
-          <InvestmentSummary
-            totalInvested={totalInvested}
-            netWorth={netWorth}
-            cash={state.cash}
-          />
+          <div className="md:col-span-5">
+            <InvestmentSummary
+              totalInvested={totalInvested}
+              netWorth={netWorth}
+              cash={state.cash}
+            />
+          </div>
           
-          <AllocationSection
-            holdings={state.holdings}
-            assets={state.assets}
-            cash={state.cash}
-          />
+          <div className="md:col-span-3">
+            <AllocationSection
+              holdings={state.holdings}
+              assets={state.assets}
+              cash={state.cash}
+            />
+          </div>
         </div>
         
         <PerformanceSection

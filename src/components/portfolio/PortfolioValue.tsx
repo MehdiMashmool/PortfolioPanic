@@ -11,8 +11,8 @@ interface PortfolioValueProps {
 
 const PortfolioValue = ({ netWorth, netWorthChange, netWorthPercentChange }: PortfolioValueProps) => {
   return (
-    <div className="relative">
-      <div className="text-sm text-gray-400 font-medium flex items-center">
+    <div className="relative p-4 bg-panel/50 rounded-lg border border-panel-light/50">
+      <div className="text-sm text-gray-400 font-medium flex items-center mb-1">
         Portfolio Value
         <TooltipProvider>
           <Tooltip>
@@ -25,7 +25,7 @@ const PortfolioValue = ({ netWorth, netWorthChange, netWorthPercentChange }: Por
           </Tooltip>
         </TooltipProvider>
       </div>
-      <div className="text-3xl font-bold mt-1 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+      <div className="text-3xl font-bold text-white">
         {formatCurrency(netWorth)}
       </div>
       <div className={`text-sm flex items-center ${netWorthChange >= 0 ? 'text-profit' : 'text-loss'}`}>

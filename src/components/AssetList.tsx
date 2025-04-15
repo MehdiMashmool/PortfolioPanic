@@ -3,6 +3,7 @@ import React from 'react';
 import { useGame } from '../contexts/GameContext';
 import { Button } from './ui/button';
 import AssetPanel from './AssetPanel';
+import { ChevronRight } from 'lucide-react';
 
 interface AssetListProps {
   onAssetClick: (id: string, name: string) => void;
@@ -21,7 +22,7 @@ const AssetList = ({ onAssetClick }: AssetListProps) => {
     // Start and end with the actual prices for accuracy
     const history = [{ value: previousPrice }];
 
-    // Generate intermediate points with appropriate volatility
+    // Generate intermediate points with appropriate volatility - amplified for better visual effect
     for (let i = 1; i < points - 1; i++) {
       // Calculate a position factor (0-1) representing where in the sequence we are
       const position = i / (points - 1);
@@ -33,8 +34,8 @@ const AssetList = ({ onAssetClick }: AssetListProps) => {
       const baseValue = previousPrice * (1 - position) + basePrice * position;
       
       // Apply volatility - higher volatility = more dramatic swings
-      // Scaled volatility for better visual effect
-      const deviation = (Math.random() - 0.5) * volatility * basePrice * 0.3;
+      // Scaled volatility for better visual effect - amplifying by 1.5x
+      const deviation = (Math.random() - 0.5) * volatility * basePrice * 0.6;
       
       // Combine trend and volatility with a weighted random walk
       const value = baseValue + deviation * (1 - trendFactor);
@@ -51,10 +52,16 @@ const AssetList = ({ onAssetClick }: AssetListProps) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h2 className="text-lg font-semibold text-white flex items-center">
           Assets
+          <span className="ml-2 text-sm text-gray-400 font-normal">
+            ({state.assets.length})
+          </span>
         </h2>
-        <Button variant="ghost" className="text-sm text-gray-400">See All</Button>
+        <Button variant="ghost" className="text-sm text-gray-400 group">
+          See All
+          <ChevronRight size={16} className="ml-1 group-hover:translate-x-0.5 transition-transform" />
+        </Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {state.assets.map(asset => (

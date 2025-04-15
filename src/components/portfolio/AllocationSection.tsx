@@ -24,6 +24,9 @@ const AllocationSection = ({ holdings, assets, cash }: AllocationSectionProps) =
       }
     });
     
+    // Calculate total portfolio value including cash
+    const totalPortfolio = totalInvested + cash;
+    
     if (totalInvested === 0) {
       return [{
         name: 'Cash',
@@ -36,7 +39,7 @@ const AllocationSection = ({ holdings, assets, cash }: AllocationSectionProps) =
       const asset = assets.find(a => a.id === assetId);
       return {
         name: asset ? asset.name : 'Unknown',
-        value: (value / (totalInvested + cash)) * 100,
+        value: (value / totalPortfolio) * 100,
         color: asset ? 
           asset.color === 'stock' ? '#3B82F6' : 
           asset.color === 'gold' ? '#FFC107' : 
@@ -45,7 +48,7 @@ const AllocationSection = ({ holdings, assets, cash }: AllocationSectionProps) =
       };
     });
     
-    const cashPercentage = (cash / (totalInvested + cash)) * 100;
+    const cashPercentage = (cash / totalPortfolio) * 100;
     if (cashPercentage > 0) {
       allocation.push({
         name: 'Cash',
@@ -58,7 +61,7 @@ const AllocationSection = ({ holdings, assets, cash }: AllocationSectionProps) =
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="p-4 bg-panel/50 rounded-lg border border-panel-light/50">
       <div className="text-sm text-gray-400 font-medium mb-1 flex items-center justify-between">
         <span>Allocation</span>
         <TooltipProvider>

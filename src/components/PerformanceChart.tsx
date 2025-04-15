@@ -54,17 +54,17 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
   
-  // Create a narrower domain to amplify visual changes
+  // Create a narrower domain to amplify visual changes - enhance amplitude for better visibility
   const valueRange = maxValue - minValue || maxValue * 0.1; // Prevent divide by zero
   
-  // Use more padding for small variations (common early in game)
-  const smallVariation = valueRange < 0.02 * maxValue;
-  const paddingFactor = smallVariation ? 0.4 : 0.2;
+  // Use more aggressive padding for small variations to amplify visual changes
+  const smallVariation = valueRange < 0.05 * maxValue;
+  const paddingFactor = smallVariation ? 0.75 : 0.35; // Increased padding factors
   const padding = valueRange * paddingFactor;
   
   // Set enhanced min/max with extra padding
-  const enhancedMin = Math.max(0, minValue - padding);
-  const enhancedMax = maxValue + padding * 1.2; // Extra padding on top
+  const enhancedMin = Math.max(0, minValue - padding * 1.5); // More padding at bottom
+  const enhancedMax = maxValue + padding * 2; // More padding at top
   
   const config = {
     portfolio: {
@@ -101,7 +101,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
       <ChartContainer className="h-full" config={config}>
         <LineChart
           data={formattedData}
-          margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+          margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
         >
           <CartesianGrid vertical={false} stroke="#2A303C" strokeDasharray="3 3" />
           <XAxis 
@@ -109,6 +109,13 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
+            label={{ 
+              value: 'Round', 
+              position: 'insideBottomRight',
+              offset: -5,
+              fill: '#8E9196',
+              fontSize: 12
+            }}
           />
           <YAxis 
             domain={[enhancedMin, enhancedMax]}

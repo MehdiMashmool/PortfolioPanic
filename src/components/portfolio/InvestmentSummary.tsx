@@ -18,31 +18,31 @@ const InvestmentSummary = ({ totalInvested, netWorth, cash }: InvestmentSummaryP
   
   return (
     <div className="grid grid-cols-2 gap-4">
-      <div className="p-3 rounded-lg bg-gradient-to-br from-indigo-900/40 to-indigo-800/20 border border-indigo-700/30">
+      <div className="p-4 rounded-lg bg-indigo-900/30 border border-indigo-800/30">
         <div className="flex justify-between items-center">
-          <div className="text-sm text-indigo-300 font-medium flex items-center">
+          <div className="text-sm text-indigo-200 font-medium flex items-center">
             <DollarSign size={14} className="mr-1 text-indigo-400" />
             Invested
           </div>
-          <div className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-900/60 border border-indigo-700/30">
+          <div className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-900/60 border border-indigo-700/30 text-indigo-200">
             {investedPercentage.toFixed(1)}% of portfolio
           </div>
         </div>
-        <div className="text-2xl font-bold mt-1">
+        <div className="text-2xl font-bold mt-1 text-white">
           {formatCurrency(totalInvested)}
         </div>
       </div>
       
-      <div className={`p-3 rounded-lg ${
+      <div className={`p-4 rounded-lg ${
         lowCash 
-          ? 'bg-gradient-to-br from-red-900/40 to-red-800/20 border border-red-700/30' 
+          ? 'bg-red-900/30 border border-red-800/30' 
           : highCash 
-            ? 'bg-gradient-to-br from-amber-900/40 to-amber-800/20 border border-amber-700/30' 
-            : 'bg-gradient-to-br from-green-900/40 to-green-800/20 border border-green-700/30'
+            ? 'bg-amber-800/30 border border-amber-700/30' 
+            : 'bg-green-900/30 border border-green-800/30'
       }`}>
         <div className="flex justify-between items-center">
           <div className={`text-sm font-medium flex items-center ${
-            lowCash ? 'text-red-300' : highCash ? 'text-amber-300' : 'text-green-300'
+            lowCash ? 'text-red-200' : highCash ? 'text-amber-200' : 'text-green-200'
           }`}>
             <Wallet size={14} className={`mr-1 ${
               lowCash ? 'text-red-400' : highCash ? 'text-amber-400' : 'text-green-400'
@@ -51,15 +51,15 @@ const InvestmentSummary = ({ totalInvested, netWorth, cash }: InvestmentSummaryP
           </div>
           <div className={`text-xs px-1.5 py-0.5 rounded-full ${
             lowCash 
-              ? 'bg-red-900/60 border border-red-700/30' 
+              ? 'bg-red-900/60 border border-red-700/30 text-red-200' 
               : highCash 
-                ? 'bg-amber-900/60 border border-amber-700/30'
-                : 'bg-green-900/60 border border-green-700/30'
+                ? 'bg-amber-900/60 border border-amber-700/30 text-amber-200'
+                : 'bg-green-900/60 border border-green-700/30 text-green-200'
           }`}>
             {cashPercentage.toFixed(1)}% of portfolio
           </div>
         </div>
-        <div className="text-2xl font-bold mt-1">
+        <div className="text-2xl font-bold mt-1 text-white">
           {formatCurrency(cash)}
         </div>
         
