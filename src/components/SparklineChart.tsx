@@ -87,8 +87,14 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   const enhancedMax = maxValue + padding * 2;
 
   // Calculate time domain for X-axis to ensure proper historical view
-  let timeMin = data[0]?.timestamp || Date.now();
-  let timeMax = data[data.length - 1]?.timestamp || Date.now();
+  // Convert any string timestamps to numbers first
+  let timeMin: number = typeof data[0]?.timestamp === 'number' 
+    ? data[0].timestamp as number 
+    : Date.now();
+    
+  let timeMax: number = typeof data[data.length - 1]?.timestamp === 'number' 
+    ? data[data.length - 1].timestamp as number 
+    : Date.now();
   
   // Ensure we have a reasonable time range for the x-axis
   if (timeMax - timeMin < 60000) { // Less than 1 minute
