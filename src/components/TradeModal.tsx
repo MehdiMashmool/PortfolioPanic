@@ -5,7 +5,8 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogFooter 
+  DialogFooter,
+  DialogDescription, 
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -15,6 +16,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
 import { useGame } from '../contexts/GameContext';
 import { formatCurrency } from '../utils/marketLogic';
+import { toast } from '@/hooks/use-toast';
 
 interface TradeModalProps {
   assetId: string;
@@ -33,7 +35,7 @@ const TradeModal: React.FC<TradeModalProps> = ({ assetId, assetName, onClose }) 
   
   if (!asset) return null;
   
-  const maxBuyUnits = Math.floor(state.cash / asset.price);
+  const maxBuyUnits = state.cash / asset.price;
   const maxSellUnits = holding.quantity;
   const maxShortUnits = 20; // Arbitrary limit for shorting
   const maxCoverUnits = holding.shortQuantity;
@@ -84,7 +86,8 @@ const TradeModal: React.FC<TradeModalProps> = ({ assetId, assetName, onClose }) 
     if (valueType === 'units') {
       return amount;
     } else {
-      return Math.floor(amount / asset.price);
+      // Allow partial shares by not flooring the result
+      return amount / asset.price;
     }
   };
   
@@ -107,6 +110,13 @@ const TradeModal: React.FC<TradeModalProps> = ({ assetId, assetName, onClose }) 
     }
     
     executeTrade(assetId, action, units);
+    
+    toast({
+      title: `${action.charAt(0).toUpperCase() + action.slice(1)} Successful`,
+      description: `${action === 'buy' ? 'Bought' : 'Sold'} ${units.toFixed(4)} units of ${assetName} for ${formatCurrency(calculateTotal())}`,
+      duration: 3000
+    });
+    
     onClose();
   };
   
@@ -115,14 +125,10 @@ const TradeModal: React.FC<TradeModalProps> = ({ assetId, assetName, onClose }) 
       <DialogContent className="sm:max-w-md bg-panel border-highlight">
         <DialogHeader>
           <DialogTitle>Trade {assetName}</DialogTitle>
+          <DialogDescription>Current price: {formatCurrency(asset.price)} per unit</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          <div className="flex justify-between text-sm">
-            <span>Current Price:</span>
-            <span className="font-semibold">{formatCurrency(asset.price)}</span>
-          </div>
-          
           <div className="flex justify-between text-sm">
             <span>Cash Available:</span>
             <span className="font-semibold">{formatCurrency(state.cash)}</span>
@@ -131,7 +137,7 @@ const TradeModal: React.FC<TradeModalProps> = ({ assetId, assetName, onClose }) 
           {holding.quantity > 0 && (
             <div className="flex justify-between text-sm">
               <span>Current Holdings:</span>
-              <span className="font-semibold">{holding.quantity} units</span>
+              <span className="font-semibold">{holding.quantity.toFixed(4)} units</span>
             </div>
           )}
           
@@ -160,7 +166,7 @@ const TradeModal: React.FC<TradeModalProps> = ({ assetId, assetName, onClose }) 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Amount:</span>
-                  <span>Max: {valueType === 'units' ? getMaxUnits() : formatCurrency(getMaxValue())}</span>
+                  <span>Max: {valueType === 'units' ? getMaxUnits().toFixed(4) : formatCurrency(getMaxValue())}</span>
                 </div>
                 <Input
                   type="number"
@@ -168,13 +174,13 @@ const TradeModal: React.FC<TradeModalProps> = ({ assetId, assetName, onClose }) 
                   onChange={handleAmountChange}
                   min={0}
                   max={getMaxValue()}
-                  step={valueType === 'units' ? 1 : asset.price}
+                  step={valueType === 'units' ? 0.0001 : asset.price / 100}
                   className="bg-dark"
                 />
                 <Slider
                   defaultValue={[1]}
                   max={getMaxValue()}
-                  step={valueType === 'units' ? 1 : asset.price / 10}
+                  step={valueType === 'units' ? 0.0001 : asset.price / 100}
                   value={[amount]}
                   onValueChange={handleSliderChange}
                 />
@@ -200,7 +206,7 @@ const TradeModal: React.FC<TradeModalProps> = ({ assetId, assetName, onClose }) 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Amount:</span>
-                  <span>Max: {valueType === 'units' ? maxSellUnits : formatCurrency(maxSellUnits * asset.price)}</span>
+                  <span>Max: {valueType === 'units' ? maxSellUnits.toFixed(4) : formatCurrency(maxSellUnits * asset.price)}</span>
                 </div>
                 <Input
                   type="number"
@@ -208,13 +214,13 @@ const TradeModal: React.FC<TradeModalProps> = ({ assetId, assetName, onClose }) 
                   onChange={handleAmountChange}
                   min={0}
                   max={valueType === 'units' ? maxSellUnits : maxSellUnits * asset.price}
-                  step={valueType === 'units' ? 1 : asset.price}
+                  step={valueType === 'units' ? 0.0001 : asset.price / 100}
                   className="bg-dark"
                 />
                 <Slider
                   defaultValue={[1]}
                   max={valueType === 'units' ? maxSellUnits : maxSellUnits * asset.price}
-                  step={valueType === 'units' ? 1 : asset.price / 10}
+                  step={valueType === 'units' ? 0.0001 : asset.price / 100}
                   value={[amount]}
                   onValueChange={handleSliderChange}
                 />
@@ -225,7 +231,7 @@ const TradeModal: React.FC<TradeModalProps> = ({ assetId, assetName, onClose }) 
           <div className="pt-2 border-t border-highlight">
             <div className="flex justify-between text-sm">
               <span>Units to {tradeType}:</span>
-              <span>{calculateUnits()}</span>
+              <span>{calculateUnits().toFixed(4)}</span>
             </div>
             <div className="flex justify-between font-semibold">
               <span>Total:</span>

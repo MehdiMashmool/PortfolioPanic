@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useGame } from '../contexts/GameContext';
 import { formatCurrency, calculateAllocation } from '../utils/marketLogic';
@@ -22,7 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
-import { toast } from './ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 type SelectedAsset = {
   id: string;
@@ -259,7 +260,8 @@ const GameDashboard: React.FC = () => {
               </div>
               
               <div className="mt-6">
-                <PerformanceChart data={state.netWorthHistory} />
+                <h3 className="text-sm text-gray-400 font-medium mb-2">Portfolio Performance</h3>
+                <PerformanceChart data={state.netWorthHistory} height={200} />
               </div>
             </CardContent>
           </Card>

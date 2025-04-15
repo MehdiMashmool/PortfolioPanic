@@ -57,10 +57,44 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
 
     case 'TICK': {
       const newTimeRemaining = Math.max(0, state.timeRemaining - action.payload);
-      if (newTimeRemaining <= 0) {
-        return { ...state, timeRemaining: 0, isPaused: true };
+      
+      // Update net worth history every 5 seconds
+      let updatedNetWorthHistory = [...state.netWorthHistory];
+      if (Math.floor(state.timeRemaining / 5) !== Math.floor(newTimeRemaining / 5)) {
+        let netWorth = state.cash;
+        Object.entries(state.holdings).forEach(([assetId, holding]) => {
+          const asset = state.assets.find(a => a.id === assetId);
+          if (asset) {
+            netWorth += holding.quantity * asset.price;
+            if (holding.shortQuantity > 0) {
+              const shortProfit = holding.shortQuantity * (holding.averageShortPrice - asset.price);
+              netWorth += shortProfit;
+            }
+          }
+        });
+        
+        // Add to history with timestamp
+        updatedNetWorthHistory = [...updatedNetWorthHistory, { 
+          round: state.round, 
+          value: netWorth,
+          timestamp: Date.now()
+        }];
       }
-      return { ...state, timeRemaining: newTimeRemaining };
+      
+      if (newTimeRemaining <= 0) {
+        return { 
+          ...state, 
+          timeRemaining: 0, 
+          isPaused: true,
+          netWorthHistory: updatedNetWorthHistory
+        };
+      }
+      
+      return { 
+        ...state, 
+        timeRemaining: newTimeRemaining,
+        netWorthHistory: updatedNetWorthHistory
+      };
     }
 
     case 'UPDATE_PRICES': {
@@ -162,7 +196,37 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         }
       }
 
-      return { ...state, cash: newCash, holdings: newHoldings };
+      // Calculate current net worth after trade
+      let netWorth = newCash;
+      Object.entries(newHoldings).forEach(([assetId, holding]) => {
+        const asset = state.assets.find(a => a.id === assetId);
+        if (asset) {
+          netWorth += holding.quantity * asset.price;
+          if (holding.shortQuantity > 0) {
+            const shortProfit = holding.shortQuantity * (holding.averageShortPrice - asset.price);
+            netWorth += shortProfit;
+          }
+        }
+      });
+
+      // Add updated net worth to history
+      const updatedNetWorthHistory = [...state.netWorthHistory];
+      // Only add new entry if value changed significantly
+      const lastEntry = updatedNetWorthHistory[updatedNetWorthHistory.length - 1];
+      if (Math.abs(netWorth - lastEntry.value) / lastEntry.value > 0.001) {
+        updatedNetWorthHistory.push({ 
+          round: state.round, 
+          value: netWorth,
+          timestamp: Date.now()
+        });
+      }
+
+      return { 
+        ...state, 
+        cash: newCash, 
+        holdings: newHoldings,
+        netWorthHistory: updatedNetWorthHistory
+      };
     }
 
     case 'UPDATE_MARKET_HEALTH':
@@ -182,7 +246,11 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
       });
       return {
         ...state,
-        netWorthHistory: [...state.netWorthHistory, { round: state.round, value: netWorth }]
+        netWorthHistory: [...state.netWorthHistory, { 
+          round: state.round, 
+          value: netWorth,
+          timestamp: Date.now()
+        }]
       };
     }
 

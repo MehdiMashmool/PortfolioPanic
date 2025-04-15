@@ -21,6 +21,7 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(gameReducer, initialGameState);
   const [lastTickTime, setLastTickTime] = useState<number | null>(null);
+  const [lastNetWorthUpdate, setLastNetWorthUpdate] = useState<number>(0);
 
   useEffect(() => {
     let frameId: number;
@@ -52,6 +53,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             dispatch({ type: 'UPDATE_MARKET_HEALTH', payload: newHealth });
           }
 
+          // Update net worth every 5 seconds for the performance chart
+          const now = Date.now();
+          if (now - lastNetWorthUpdate > 5000) {
+            dispatch({ type: 'UPDATE_NET_WORTH' });
+            setLastNetWorthUpdate(now);
+          }
+
           setLastTickTime(timestamp);
         }
       }
@@ -64,7 +72,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [state.isPaused, state.isGameOver, lastTickTime]);
+  }, [state.isPaused, state.isGameOver, lastTickTime, lastNetWorthUpdate]);
 
   useEffect(() => {
     setLastTickTime(null);

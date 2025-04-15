@@ -32,6 +32,12 @@ export type NewsItem = {
 
 export type TradeAction = 'buy' | 'sell' | 'short' | 'cover';
 
+export type NetWorthHistoryEntry = {
+  round: number;
+  value: number;
+  timestamp?: number;
+};
+
 export type GameState = {
   assets: Asset[];
   cash: number;
@@ -42,8 +48,6 @@ export type GameState = {
   isGameOver: boolean;
   news: NewsItem[];
   activeNews: NewsItem[];
-  netWorthHistory: { round: number; value: number }[];
+  netWorthHistory: NetWorthHistoryEntry[];
   marketHealth: number;
 };
-
-// Removed the redundant export type block
