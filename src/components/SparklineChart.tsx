@@ -41,6 +41,17 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   const isPositive = data[data.length - 1].value >= data[0].value;
   const lineColor = isPositive ? color : "#EF4444";
 
+  // Calculate domain to enhance the visual amplitude
+  const values = data.map(item => item.value);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  
+  // Create a narrower domain to amplify visual changes - make the chart show 50% more variation
+  const valueRange = maxValue - minValue;
+  const padding = valueRange * 0.25; // 25% padding for top and bottom
+  const enhancedMin = Math.max(0, minValue - padding);
+  const enhancedMax = maxValue + padding;
+
   return (
     <div className={cn("h-[30px] w-full", className)}>
       <ResponsiveContainer width="100%" height={height}>
@@ -55,12 +66,18 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
               />
               <YAxis 
                 hide={!showAxes}
-                domain={['auto', 'auto']}
+                domain={[enhancedMin, enhancedMax]}
                 tick={false}
                 axisLine={false}
                 tickLine={false}
               />
             </>
+          )}
+          {!showAxes && (
+            <YAxis 
+              domain={[enhancedMin, enhancedMax]}
+              hide={true}
+            />
           )}
           {showTooltip && (
             <Tooltip 

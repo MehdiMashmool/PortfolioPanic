@@ -41,8 +41,12 @@ const InvestmentSummary = ({ totalInvested, netWorth, cash }: InvestmentSummaryP
             : 'bg-gradient-to-br from-green-900/40 to-green-800/20 border border-green-700/30'
       }`}>
         <div className="flex justify-between items-center">
-          <div className="text-sm text-green-300 font-medium flex items-center">
-            <Wallet size={14} className="mr-1 text-green-400" />
+          <div className={`text-sm font-medium flex items-center ${
+            lowCash ? 'text-red-300' : highCash ? 'text-amber-300' : 'text-green-300'
+          }`}>
+            <Wallet size={14} className={`mr-1 ${
+              lowCash ? 'text-red-400' : highCash ? 'text-amber-400' : 'text-green-400'
+            }`} />
             Available Cash
           </div>
           <div className={`text-xs px-1.5 py-0.5 rounded-full ${

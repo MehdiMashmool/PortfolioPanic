@@ -18,12 +18,17 @@ const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory = 
   const priceChangePercent = (priceChange / asset.previousPrice) * 100;
   const priceChangeColor = getPriceChangeColor(priceChange);
   
-  // Generate mock data for sparkline if not provided
-  const sparklineData = priceHistory.length > 0 ? 
-    priceHistory : 
-    Array(10).fill(0).map((_, i) => ({ 
-      value: asset.price * (0.95 + Math.random() * 0.1) 
-    }));
+  // Generate data for sparkline if not provided
+  const generateMockSparklineData = () => {
+    // Create fluctuating data rather than flat line
+    return Array(10).fill(0).map((_, i) => {
+      const randomFactor = 0.95 + (Math.random() * 0.15); // Increased range for more visible fluctuations
+      return { value: asset.price * randomFactor };
+    });
+  };
+  
+  // Use provided history or generate mock data with more variation
+  const sparklineData = priceHistory.length > 0 ? priceHistory : generateMockSparklineData();
   
   const getVolatilityLevel = (volatility: number) => {
     if (volatility >= 0.7) return 'Very High';

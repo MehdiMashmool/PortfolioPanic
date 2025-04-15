@@ -1,5 +1,5 @@
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, TooltipProps } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
 
@@ -42,6 +42,17 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
     formattedValue: formatCurrency(entry.value).replace('$', '')
   }));
 
+  // Calculate domain to enhance the visual amplitude
+  const values = data.map(item => item.value);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  
+  // Create a narrower domain to amplify visual changes - enhance amplitude by 30%
+  const valueRange = maxValue - minValue;
+  const padding = valueRange * 0.15; // 15% padding for top and bottom
+  const enhancedMin = Math.max(0, minValue - padding);
+  const enhancedMax = maxValue + padding;
+  
   const config = {
     portfolio: {
       label: 'Portfolio Value',
@@ -64,6 +75,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
             axisLine={{ stroke: '#2A303C' }}
           />
           <YAxis 
+            domain={[enhancedMin, enhancedMax]}
             tickFormatter={(value) => formatCurrency(value).replace('$', '')}
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
