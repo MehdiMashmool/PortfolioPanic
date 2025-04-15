@@ -1,6 +1,8 @@
+
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
+import CustomTooltip from './charts/CustomTooltip';
 
 interface ChartData {
   round: number;
@@ -12,23 +14,6 @@ interface PerformanceChartProps {
   data: ChartData[];
   height?: number;
 }
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="chart-tooltip bg-panel border border-highlight p-2 rounded-md shadow-lg">
-        <p className="text-sm font-medium">{`Round ${label}`}</p>
-        <p className="text-sm font-semibold tooltip-value">{formatCurrency(payload[0].value)}</p>
-        {payload[0].payload.timestamp && (
-          <p className="text-xs text-gray-400 tooltip-time">
-            {new Date(payload[0].payload.timestamp).toLocaleTimeString()}
-          </p>
-        )}
-      </div>
-    );
-  }
-  return null;
-};
 
 const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 }) => {
   if (!data || data.length < 2) {
@@ -173,7 +158,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
           )}
           
           <Line
-            type="straight"
+            type="linear"
             dataKey="value"
             stroke={isPositive ? '#10B981' : '#EF4444'}
             strokeWidth={2}
