@@ -12,6 +12,8 @@ interface SparklineChartProps {
   showTooltip?: boolean;
   showAxes?: boolean;
   valuePrefix?: string;
+  areaFill?: boolean;
+  referenceValue?: number;
 }
 
 const CustomTooltip = ({ active, payload, valuePrefix }: TooltipProps<number, string> & { valuePrefix?: string }) => {
@@ -33,22 +35,27 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   showTooltip = false,
   showAxes = false,
   valuePrefix = '',
+  areaFill = false,
+  referenceValue,
 }) => {
   if (!data || data.length === 0) {
     return <div className={cn("h-[30px] w-full", className)} />;
   }
 
-  const isPositive = data[data.length - 1].value >= data[0].value;
+  // Use the reference value if provided, otherwise use the first value in the data
+  const startValue = referenceValue !== undefined ? referenceValue : data[0].value;
+  const isPositive = data[data.length - 1].value >= startValue;
   const lineColor = isPositive ? color : "#EF4444";
-
+  
   // Calculate domain to enhance the visual amplitude
   const values = data.map(item => item.value);
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
   
-  // Create a narrower domain to amplify visual changes - make the chart show 50% more variation
-  const valueRange = maxValue - minValue;
-  const padding = valueRange * 0.25; // 25% padding for top and bottom
+  // Create an enhanced domain to amplify visual changes
+  const valueRange = maxValue - minValue || maxValue * 0.1; // Prevent divide by zero
+  const paddingFactor = valueRange < 0.01 * maxValue ? 0.5 : 0.25; // More padding for small variations
+  const padding = valueRange * paddingFactor;
   const enhancedMin = Math.max(0, minValue - padding);
   const enhancedMax = maxValue + padding;
 
@@ -85,6 +92,17 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
               cursor={{ stroke: '#4B5563', strokeWidth: 1, strokeDasharray: '3 3' }}
             />
           )}
+          {referenceValue !== undefined && (
+            <Line
+              type="monotone"
+              dataKey={() => referenceValue}
+              stroke="#6B7280"
+              strokeWidth={1}
+              strokeDasharray="3 3"
+              dot={false}
+              isAnimationActive={false}
+            />
+          )}
           <Line
             type="monotone"
             dataKey="value"
@@ -93,6 +111,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
             dot={false}
             activeDot={showTooltip ? { r: 4, stroke: lineColor, strokeWidth: 1, fill: "#1A1F2C" } : false}
             isAnimationActive={true}
+            connectNulls={true}
           />
         </LineChart>
       </ResponsiveContainer>

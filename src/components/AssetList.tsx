@@ -26,7 +26,8 @@ const AssetList = ({ onAssetClick }: AssetListProps) => {
             asset={asset}
             onClick={() => onAssetClick(asset.id, asset.name)}
             priceHistory={Array(10).fill(0).map((_, i) => ({ 
-              value: asset.price * (0.9 + Math.random() * 0.2) 
+              // Create more dramatic fluctuations (20-30% price range) for better visual impact
+              value: asset.price * (0.85 + Math.random() * 0.3) 
             }))}
           />
         ))}

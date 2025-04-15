@@ -32,6 +32,13 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 }) => {
+  if (!data || data.length < 2) {
+    // Return empty or placeholder chart if no data
+    return <div className="h-full w-full bg-panel-light/20 rounded flex items-center justify-center" style={{ height }}>
+      <span className="text-sm text-gray-400">Waiting for performance data...</span>
+    </div>;
+  }
+
   const startValue = data[0]?.value || 0;
   const currentValue = data[data.length - 1]?.value || 0;
   const isPositive = currentValue >= startValue;
@@ -47,9 +54,11 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
   
-  // Create a narrower domain to amplify visual changes - enhance amplitude by 30%
-  const valueRange = maxValue - minValue;
-  const padding = valueRange * 0.15; // 15% padding for top and bottom
+  // Create a narrower domain to amplify visual changes
+  const valueRange = maxValue - minValue || maxValue * 0.1; // Prevent divide by zero
+  // Use more padding for small variations (common early in game)
+  const paddingFactor = valueRange < 0.01 * maxValue ? 0.2 : 0.15; 
+  const padding = valueRange * paddingFactor;
   const enhancedMin = Math.max(0, minValue - padding);
   const enhancedMax = maxValue + padding;
   
@@ -83,6 +92,18 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 250 
             width={60}
           />
           <Tooltip content={<CustomTooltip />} />
+          {/* Optional starting reference line */}
+          <Line
+            name="reference"
+            type="monotone"
+            dataKey={() => startValue}
+            stroke="#6B7280"
+            strokeWidth={1}
+            strokeDasharray="3 3"
+            dot={false}
+            activeDot={false}
+            isAnimationActive={false}
+          />
           <Line
             name="portfolio"
             type="monotone"

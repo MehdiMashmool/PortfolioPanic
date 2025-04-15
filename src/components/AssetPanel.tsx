@@ -20,9 +20,10 @@ const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory = 
   
   // Generate data for sparkline if not provided
   const generateMockSparklineData = () => {
-    // Create fluctuating data rather than flat line
+    // Create fluctuating data with significant variations
     return Array(10).fill(0).map((_, i) => {
-      const randomFactor = 0.95 + (Math.random() * 0.15); // Increased range for more visible fluctuations
+      // Create more dramatic price movements (±15-20%)
+      const randomFactor = 0.85 + (Math.random() * 0.3);
       return { value: asset.price * randomFactor };
     });
   };
@@ -106,6 +107,7 @@ const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory = 
             color={asset.color === 'stock' ? '#3B82F6' : 
                  asset.color === 'gold' ? '#F59E0B' : 
                  asset.color === 'oil' ? '#6B7280' : '#8B5CF6'} 
+            referenceValue={asset.previousPrice}
           />
         </div>
         
