@@ -1,11 +1,11 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { GameProvider, useGame } from '../contexts/GameContext';
 import GameDashboard from '../components/GameDashboard';
 import StartScreen from '../components/StartScreen';
 import GameOverScreen from '../components/GameOverScreen';
 
-// Game wrapper component
+// Game wrapper component that uses the useGame hook
 const GameWrapper = () => {
   const { state } = useGame();
   

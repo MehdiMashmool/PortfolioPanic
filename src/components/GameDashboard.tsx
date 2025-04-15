@@ -26,7 +26,7 @@ type SelectedAsset = {
 } | null;
 
 const GameDashboard: React.FC = () => {
-  const { state, pauseGame, resumeGame, endGame, unlockAchievement } = useGame();
+  const { state, pauseGame, resumeGame, endGame } = useGame();
   const [selectedAsset, setSelectedAsset] = useState<SelectedAsset>(null);
   const [showHint, setShowHint] = useState(true);
   
