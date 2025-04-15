@@ -4,6 +4,8 @@ import { generateMarketNews } from '../utils/newsGenerator';
 import { GameState, TradeAction } from '../types/game';
 import { gameReducer } from '../reducers/gameReducer';
 import { initialGameState } from '../constants/gameInitialState';
+import { showAchievementToast } from '../components/AchievementToast';
+import { AchievementType } from '../components/AchievementBadge';
 
 type GameContextType = {
   state: GameState;
@@ -14,6 +16,7 @@ type GameContextType = {
   resumeGame: () => void;
   endGame: () => void;
   nextRound: () => void;
+  unlockAchievement: (achievement: AchievementType) => void;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -22,6 +25,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [state, dispatch] = useReducer(gameReducer, initialGameState);
   const [lastTickTime, setLastTickTime] = useState<number | null>(null);
   const [lastNetWorthUpdate, setLastNetWorthUpdate] = useState<number>(0);
+  const [achievementsUnlocked, setAchievementsUnlocked] = useState<Set<AchievementType>>(new Set());
 
   useEffect(() => {
     let frameId: number;
@@ -74,6 +78,37 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [state.isPaused, state.isGameOver, lastTickTime, lastNetWorthUpdate]);
 
+  // Check for achievements
+  useEffect(() => {
+    // Check for first trade
+    if (Object.keys(state.holdings).length > 0 && !achievementsUnlocked.has('first-trade')) {
+      unlockAchievement('first-trade');
+    }
+    
+    // Check for portfolio doubled
+    const netWorth = calculateNetWorth();
+    if (netWorth >= 20000 && !achievementsUnlocked.has('doubled-portfolio')) {
+      unlockAchievement('doubled-portfolio');
+    }
+
+    // Check for diversified portfolio
+    const assetTypes = new Set(state.assets.map(asset => asset.color));
+    const investedTypes = new Set();
+    Object.entries(state.holdings).forEach(([assetId, holding]) => {
+      if (holding.quantity > 0) {
+        const asset = state.assets.find(a => a.id === assetId);
+        if (asset) {
+          investedTypes.add(asset.color);
+        }
+      }
+    });
+    
+    if (investedTypes.size >= assetTypes.size && !achievementsUnlocked.has('diversified')) {
+      unlockAchievement('diversified');
+    }
+
+  }, [state.holdings, state.netWorthHistory]);
+
   useEffect(() => {
     setLastTickTime(null);
   }, [state.isPaused]);
@@ -105,6 +140,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const unlockAchievement = (achievement: AchievementType) => {
+    if (!achievementsUnlocked.has(achievement)) {
+      setAchievementsUnlocked(prev => {
+        const newSet = new Set(prev);
+        newSet.add(achievement);
+        return newSet;
+      });
+      
+      showAchievementToast(achievement);
+    }
+  };
+
   const startGame = () => dispatch({ type: 'START_GAME' });
   const pauseGame = () => dispatch({ type: 'PAUSE_GAME' });
   const resumeGame = () => dispatch({ type: 'RESUME_GAME' });
@@ -119,7 +166,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     pauseGame,
     resumeGame,
     endGame,
-    nextRound
+    nextRound,
+    unlockAchievement
   };
 
   return (
