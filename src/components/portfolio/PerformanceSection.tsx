@@ -1,4 +1,3 @@
-
 import { AchievementType } from '../AchievementBadge';
 import PerformanceChart from '../PerformanceChart';
 import AchievementBadge from '../AchievementBadge';
@@ -44,7 +43,7 @@ const PerformanceSection = ({
           <AchievementBadge type="diversified" unlocked={isDiversified} size="sm" />
         </div>
       </div>
-      <PerformanceChart data={netWorthHistory} height={180} />
+      <PerformanceChart data={netWorthHistory} height={250} />
     </div>
   );
 };

@@ -3,7 +3,7 @@ import React from 'react';
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, Area } from 'recharts';
 import { cn } from "@/lib/utils";
 import CustomTooltip from './CustomTooltip';
-import { calculateChartDomains, getLineColor, getAreaColor } from './sparklineUtils';
+import { calculateChartDomains } from './sparklineUtils';
 import { getAssetChartColors } from '../../utils/chartUtils';
 
 interface SparklineChartProps {
@@ -12,7 +12,6 @@ interface SparklineChartProps {
   className?: string;
   height?: number;
   showTooltip?: boolean;
-  showAxes?: boolean;
   valuePrefix?: string;
   areaFill?: boolean;
   referenceValue?: number;
@@ -37,6 +36,9 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   }
 
   const startValue = referenceValue !== undefined ? referenceValue : data[0].value;
+  const currentValue = data[data.length - 1].value;
+  const isPositive = currentValue >= startValue;
+  
   let lineColor = color;
   let areaColor = "";
   
@@ -45,9 +47,6 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
     const colors = getAssetChartColors(assetType, prices);
     lineColor = colors.line;
     areaColor = colors.area;
-  } else {
-    lineColor = getLineColor(startValue, data[data.length - 1].value, color);
-    areaColor = getAreaColor(lineColor);
   }
 
   const { enhancedMin, enhancedMax } = calculateChartDomains(data, amplifyVisuals);
@@ -55,7 +54,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   // Convert any string timestamps to numbers first
   const timeMin = typeof data[0]?.timestamp === 'number' 
     ? data[0].timestamp as number 
-    : Date.now();
+    : Date.now() - 60000; // Default to 1 minute ago
     
   const timeMax = typeof data[data.length - 1]?.timestamp === 'number' 
     ? data[data.length - 1].timestamp as number 
@@ -85,16 +84,24 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
             />
           )}
           {areaFill && (
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="none"
-              fill={areaColor}
-              fillOpacity={0.2}
-            />
+            <>
+              <defs>
+                <linearGradient id={`sparklineGradient-${assetType}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={lineColor} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="linear"
+                dataKey="value"
+                stroke="none"
+                fill={`url(#sparklineGradient-${assetType})`}
+                fillOpacity={0.2}
+              />
+            </>
           )}
           <Line
-            type="monotone"
+            type="linear"
             dataKey="value"
             stroke={lineColor}
             strokeWidth={2}
