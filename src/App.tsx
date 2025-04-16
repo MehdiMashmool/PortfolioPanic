@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Leaderboard from "./pages/Leaderboard";
 import Index from "./pages/Index";
+import { GameProvider } from "./contexts/GameContext";
 
 const queryClient = new QueryClient();
 
@@ -62,7 +63,11 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<MainMenu />} />
-          <Route path="/game" element={<Index />} />
+          <Route path="/game" element={
+            <GameProvider>
+              <Index />
+            </GameProvider>
+          } />
           <Route path="/how-to-play" element={<HowToPlay />} />
           <Route path="/achievements" element={
             <ProtectedRoute>
