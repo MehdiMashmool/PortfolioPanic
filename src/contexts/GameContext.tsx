@@ -30,7 +30,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [achievementsUnlocked, setAchievementsUnlocked] = useState<Set<AchievementType>>(new Set());
   const [recentNewsIds, setRecentNewsIds] = useState<Set<string>>(new Set());
 
-  const PRICE_UPDATE_INTERVAL = 3000;
+  const PRICE_UPDATE_INTERVAL = 1000;
 
   useEffect(() => {
     state.assets.forEach(asset => {

@@ -62,6 +62,11 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
     timeInSeconds: Math.floor((Number(entry.timestamp) - startTime) / 1000)
   }));
 
+  // Find min and max time for domain
+  const timeValues = formattedData.map(item => item.timeInSeconds);
+  const minTime = 0; // Always start at 0 seconds
+  const maxTime = Math.max(...timeValues);
+
   return (
     <div className={cn("h-[30px] w-full", className)}>
       <ResponsiveContainer width="100%" height={height}>
@@ -73,10 +78,12 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
           <XAxis 
             dataKey="timeInSeconds"
             type="number"
-            domain={[0, 'auto']}
+            domain={[minTime, maxTime]}
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
+            tickFormatter={(value) => `${value}s`}
+            allowDecimals={false}
           />
           <YAxis 
             domain={[enhancedMin, enhancedMax]}

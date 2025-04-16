@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Area, CartesianGrid } from 'recharts';
 import { cn } from "@/lib/utils";
@@ -85,32 +86,48 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   const enhancedMin = Math.max(0, minValue - padding * 1.5);
   const enhancedMax = maxValue + padding * 2;
 
-  // Calculate time domain for X-axis
-  const timeMin = Number(data[0]?.timestamp) || Date.now();
-  const timeMax = Number(data[data.length - 1]?.timestamp) || Date.now();
+  // Convert timestamps to seconds from start
+  const startTime = Number(data[0]?.timestamp) || Date.now();
+  const formattedData = data.map(entry => ({
+    ...entry,
+    timeInSeconds: Math.floor((Number(entry.timestamp) - startTime) / 1000)
+  }));
+
+  // Find min and max time for domain
+  const timeValues = formattedData.map(item => item.timeInSeconds);
+  const minTime = 0; // Always start at 0 seconds
+  const maxTime = Math.max(...timeValues);
   
   return (
     <div className={cn("h-[30px] w-full", className)}>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart 
-          data={data} 
+          data={formattedData} 
           margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
         >
           <YAxis 
             domain={[enhancedMin, enhancedMax]}
-            hide={true}
+            hide={!showAxes}
           />
           <XAxis 
-            dataKey="timestamp"
+            dataKey="timeInSeconds"
             type="number"
-            domain={[timeMin, timeMax]}
-            hide={true}
+            domain={[minTime, maxTime]}
+            hide={!showAxes}
+            tick={{ fill: '#8E9196' }}
+            tickLine={{ stroke: '#8E9196' }}
+            axisLine={{ stroke: '#2A303C' }}
+            tickFormatter={(value) => `${value}s`}
+            allowDecimals={false}
           />
           {showTooltip && (
             <Tooltip 
               content={<CustomTooltip valuePrefix={valuePrefix} />}
               cursor={{ stroke: '#4B5563', strokeWidth: 1 }}
             />
+          )}
+          {showAxes && (
+            <CartesianGrid vertical={false} stroke="#2A303C" strokeDasharray="3 3" />
           )}
           {areaFill && (
             <Area

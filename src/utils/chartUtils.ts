@@ -1,4 +1,3 @@
-
 /**
  * Chart data management utilities for asset sparklines and portfolio charts
  */
@@ -65,10 +64,10 @@ export const initAssetPriceHistory = (assetId: string, initialPrice: number) => 
 };
 
 /**
- * Fixed 3-second update interval for all chart updates
+ * Fixed 1-second update interval for all chart updates
  * This is a critical timing parameter for chart visualization
  */
-const UPDATE_INTERVAL = 3000;
+const UPDATE_INTERVAL = 1000; // Changed from 3000 to 1000 ms (1 second)
 let lastGraphUpdate = 0;
 
 /**

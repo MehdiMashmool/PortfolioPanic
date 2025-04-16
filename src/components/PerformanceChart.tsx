@@ -1,3 +1,4 @@
+
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
@@ -25,12 +26,14 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const currentValue = data[data.length - 1]?.value || 0;
   const isPositive = currentValue >= startValue;
   
+  // Format data with consistent time in seconds starting from 0
   const startTime = data[0]?.timestamp || Date.now();
   const formattedData = data.map(entry => ({
     ...entry,
     timeInSeconds: Math.floor((entry.timestamp - startTime) / 1000)
   }));
 
+  // Calculate display domains
   const values = data.map(item => item.value);
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
@@ -42,6 +45,11 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   
   const enhancedMin = Math.max(0, minValue - padding * 1.5);
   const enhancedMax = maxValue + padding * 2;
+
+  // Find min and max time for domain
+  const timeValues = formattedData.map(item => item.timeInSeconds);
+  const minTime = 0; // Always start at 0 seconds
+  const maxTime = Math.max(...timeValues);
 
   const config = {
     portfolio: {
@@ -84,7 +92,9 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
-            domain={[0, 'auto']}
+            domain={[minTime, maxTime]}
+            allowDecimals={false}
+            tickFormatter={(value) => `${value}s`}
             label={{ 
               value: 'Time (seconds)', 
               position: 'insideBottomRight',
@@ -125,7 +135,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             stroke={isPositive ? '#10B981' : '#EF4444'}
             strokeWidth={2}
             dot={false}
-            activeDot={false}
+            activeDot={{ r: 4, stroke: isPositive ? '#10B981' : '#EF4444', strokeWidth: 2, fill: "#1A1F2C" }}
           />
         </LineChart>
       </ChartContainer>
