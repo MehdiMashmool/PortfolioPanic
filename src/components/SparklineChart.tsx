@@ -4,7 +4,7 @@ import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceL
 import { cn } from "@/lib/utils";
 import { formatCurrency } from '../utils/marketLogic';
 import { getAssetChartColors } from '../utils/chartUtils';
-import ChartTooltip from './charts/CustomTooltip'; // Renamed import to avoid conflict
+import ChartTooltip from './charts/CustomTooltip';
 
 interface SparklineChartProps {
   data: Array<{ value: number; timestamp?: number | string }>;
@@ -19,9 +19,6 @@ interface SparklineChartProps {
   amplifyVisuals?: boolean;
   assetType?: string;
 }
-
-// Remove the locally defined CustomTooltip component and use the imported one instead
-// with the new name ChartTooltip
 
 const SparklineChart: React.FC<SparklineChartProps> = ({ 
   data, 
@@ -70,17 +67,33 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   const enhancedMin = Math.max(0, minValue - padding * 1.5);
   const enhancedMax = maxValue + padding * 2;
 
-  // Convert timestamps to seconds from start, ensuring positive values
-  const startTime = Number(data[0]?.timestamp) || Date.now();
-  const formattedData = data.map(entry => ({
-    ...entry,
-    timeInSeconds: Math.max(0, Math.floor((Number(entry.timestamp || startTime) - startTime) / 1000))
-  }));
+  // Get the first timestamp to use as a reference for relative time
+  const timestamps = data.map(item => Number(item.timestamp || 0)).filter(t => !isNaN(t) && t > 0);
+  const startTime = timestamps.length > 0 ? Math.min(...timestamps) : Date.now();
+  
+  // Process the data to ensure proper time display
+  const formattedData = data.map((entry, index) => {
+    const timestamp = Number(entry.timestamp || 0);
+    // If we have a valid timestamp, use it; otherwise calculate based on index
+    const timeInSeconds = timestamp > 0 ? 
+      Math.max(0, Math.floor((timestamp - startTime) / 1000)) : index;
+      
+    return {
+      ...entry,
+      timeInSeconds
+    };
+  });
 
-  // Find max time for domain
+  // Create a proper time domain for the X axis
   const timeValues = formattedData.map(item => item.timeInSeconds);
   const minTime = 0; // Always start at 0 seconds
-  const maxTime = Math.max(...timeValues, 1); // Ensure we have at least some range
+  const maxTime = Math.max(...timeValues, 1); // Ensure we have some range
+  
+  // Create time ticks that make sense
+  const tickCount = Math.min(3, maxTime); // Use at most 3 ticks for small charts
+  const timeTicks = Array.from({ length: tickCount }, (_, i) => 
+    Math.round(minTime + (maxTime / Math.max(1, tickCount - 1)) * i)
+  );
 
   return (
     <div className={cn("h-[30px] w-full", className)}>
@@ -96,6 +109,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
             dataKey="timeInSeconds"
             type="number"
             domain={[0, maxTime]}
+            ticks={timeTicks}
             hide={!showAxes}
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
@@ -116,7 +130,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
           {areaFill && (
             <>
               <defs>
-                <linearGradient id={`sparklineGradient-${assetType}`} x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id={`sparklineGradient-${assetType || 'default'}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={lineColor} stopOpacity={0.3} />
                   <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
                 </linearGradient>
@@ -125,7 +139,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
                 type="linear"
                 dataKey="value"
                 stroke="none"
-                fill={`url(#sparklineGradient-${assetType})`}
+                fill={`url(#sparklineGradient-${assetType || 'default'})`}
                 fillOpacity={0.2}
               />
             </>

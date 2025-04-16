@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useGame } from '../contexts/GameContext';
-import { Button } from './ui/button';
 import AssetPanel from './AssetPanel';
 
 interface AssetListProps {

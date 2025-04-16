@@ -1,3 +1,4 @@
+
 import { GameState, TradeAction } from '../types/game';
 import { calculateNewPrices } from '../utils/marketLogic';
 
@@ -9,13 +10,14 @@ type Action =
   | { type: 'UPDATE_PRICES' }
   | { type: 'ADD_NEWS'; payload: any }
   | { type: 'EXPIRE_NEWS'; payload: string }
-  | { type: 'EXECUTE_TRADE'; payload: { assetId: string; action: TradeAction; amount: number; price: number } }
+  | { type: 'EXECUTE_TRADE'; payload: { assetId: string; action: TradeAction; amount: number; price: number; timestamp?: number } }
   | { type: 'UPDATE_MARKET_HEALTH'; payload: number }
-  | { type: 'UPDATE_NET_WORTH' };
+  | { type: 'UPDATE_NET_WORTH'; payload?: { timestamp?: number } };
 
 export const gameReducer = (state: GameState, action: Action): GameState => {
   switch (action.type) {
-    case 'START_GAME':
+    case 'START_GAME': {
+      const now = Date.now();
       return {
         ...state,
         isPaused: false,
@@ -23,17 +25,19 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         timeRemaining: 60,
         cash: 10000,
         holdings: {},
-        netWorthHistory: [{ round: 0, value: 10000 }],
+        netWorthHistory: [{ round: 0, value: 10000, timestamp: now }],
         marketHealth: 100,
         news: [],
         activeNews: [],
-        lastPriceUpdate: Date.now(),
+        lastPriceUpdate: now,
       };
+    }
       
     case 'END_GAME':
       return { ...state, isPaused: true, isGameOver: true };
       
-    case 'NEXT_ROUND':
+    case 'NEXT_ROUND': {
+      const now = Date.now();
       if (state.round >= 10) {
         return { ...state, isPaused: true, isGameOver: true };
       }
@@ -43,8 +47,9 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         timeRemaining: 60,
         isPaused: false,
         activeNews: [],
-        lastPriceUpdate: Date.now(),
+        lastPriceUpdate: now,
       };
+    }
 
     case 'TICK': {
       const newTimeRemaining = Math.max(0, state.timeRemaining - action.payload);
@@ -64,7 +69,7 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
           }
         });
         
-        // Add to history with timestamp
+        // Add to history with current timestamp
         updatedNetWorthHistory = [...updatedNetWorthHistory, { 
           round: state.round, 
           value: netWorth,
@@ -89,9 +94,9 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
     }
 
     case 'UPDATE_PRICES': {
-      // Only update prices if 5 seconds have passed since last update
+      // Only update prices if time has passed since last update
       const now = Date.now();
-      if (now - (state.lastPriceUpdate || 0) < 5000) {
+      if (now - (state.lastPriceUpdate || 0) < 1000) {
         return state;
       }
 
@@ -126,7 +131,7 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
       };
 
     case 'EXECUTE_TRADE': {
-      const { assetId, action: tradeAction, amount, price } = action.payload;
+      const { assetId, action: tradeAction, amount, price, timestamp = Date.now() } = action.payload;
       const asset = state.assets.find(a => a.id === assetId);
       if (!asset) return state;
 
@@ -211,7 +216,7 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         }
       });
 
-      // Add updated net worth to history
+      // Add updated net worth to history with timestamp
       const updatedNetWorthHistory = [...state.netWorthHistory];
       // Only add new entry if value changed significantly
       const lastEntry = updatedNetWorthHistory[updatedNetWorthHistory.length - 1];
@@ -219,7 +224,7 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         updatedNetWorthHistory.push({ 
           round: state.round, 
           value: netWorth,
-          timestamp: Date.now()
+          timestamp: timestamp
         });
       }
 
@@ -246,12 +251,16 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
           }
         }
       });
+      
+      // Use provided timestamp or current time
+      const timestamp = action.payload?.timestamp || Date.now();
+      
       return {
         ...state,
         netWorthHistory: [...state.netWorthHistory, { 
           round: state.round, 
           value: netWorth,
-          timestamp: Date.now()
+          timestamp: timestamp
         }]
       };
     }

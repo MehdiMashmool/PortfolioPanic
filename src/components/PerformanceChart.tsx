@@ -1,5 +1,5 @@
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
 import CustomTooltip from './charts/CustomTooltip';
@@ -26,17 +26,17 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const currentValue = data[data.length - 1]?.value || 0;
   const isPositive = currentValue >= startValue;
   
-  // Generate proper time values that increase correctly
-  const startTime = data[0]?.timestamp || Date.now();
-  const formattedData = data.map((entry, index) => {
-    // Ensure time values are always increasing by calculating based on index
-    const timeInSeconds = entry.timestamp ? 
-      Math.max(0, Math.floor((entry.timestamp - startTime) / 1000)) : 
-      index; // Fallback to index if timestamp is missing
-      
+  // Process timestamps to ensure proper time display
+  const startTimestamp = data[0]?.timestamp || Date.now();
+  
+  // Process the data to calculate relative time in seconds from the start
+  const formattedData = data.map(entry => {
+    const timestamp = entry.timestamp || startTimestamp;
+    const elapsedSeconds = Math.floor((timestamp - startTimestamp) / 1000);
+    
     return {
       ...entry,
-      timeInSeconds
+      timeInSeconds: elapsedSeconds
     };
   });
 
@@ -55,7 +55,15 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
 
   // Get time domain from the formatted data
   const timeValues = formattedData.map(item => item.timeInSeconds);
+  const minTime = Math.min(...timeValues);
   const maxTime = Math.max(...timeValues, 10); // Ensure we have some minimum range
+
+  // Create time ticks that make sense
+  const timeRange = maxTime - minTime;
+  const tickCount = Math.min(5, timeRange); // Limit to 5 ticks or fewer if range is small
+  const timeTicks = Array.from({ length: tickCount }, (_, i) => 
+    Math.round(minTime + (timeRange / (tickCount - 1)) * i)
+  );
 
   // Required chart config for ChartContainer
   const config = {
@@ -99,7 +107,8 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
-            domain={[0, 'dataMax']} 
+            domain={[minTime, maxTime]} 
+            ticks={timeTicks}
             allowDecimals={false}
             tickFormatter={(value) => `${value}s`}
             label={{ 
