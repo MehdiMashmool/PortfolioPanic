@@ -135,6 +135,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
               strokeWidth: 2, 
               fill: "#1A1F2C" 
             }}
+            fill="url(#portfolioGradient)"
           />
         </LineChart>
       </ResponsiveContainer>

@@ -49,10 +49,10 @@ const GameDashboard: React.FC = () => {
   };
   
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] text-white overflow-hidden">
+    <div className="h-screen w-screen flex flex-col bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] text-white overflow-hidden">
       <GameHeader />
 
-      <main className="flex-grow container mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-3 gap-4 overflow-hidden">
+      <main className="flex-grow container mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-3 gap-4 overflow-hidden h-[calc(100vh-64px)]">
         <div className="lg:col-span-2 space-y-4 overflow-auto max-h-full pb-4">
           <PortfolioSummary />
 
