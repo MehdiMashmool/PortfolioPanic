@@ -44,7 +44,9 @@ const PerformanceSection = ({
           <AchievementBadge type="diversified" unlocked={isDiversified} size="sm" />
         </div>
       </div>
-      <PerformanceChart data={netWorthHistory} height={200} />
+      <div className="w-full h-[300px]"> {/* Increase fixed height for better visibility */}
+        <PerformanceChart data={netWorthHistory} height={300} />
+      </div>
     </div>
   );
 };

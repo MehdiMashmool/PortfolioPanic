@@ -49,11 +49,11 @@ const GameDashboard: React.FC = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] text-white flex flex-col">
+    <div className="min-h-screen h-screen flex flex-col bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] text-white overflow-hidden">
       <GameHeader />
 
-      <main className="flex-grow container mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 space-y-4">
+      <main className="flex-grow container mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-3 gap-4 overflow-hidden">
+        <div className="lg:col-span-2 space-y-4 overflow-auto max-h-full pb-4">
           <PortfolioSummary />
 
           {Object.keys(state.holdings).length === 0 && showHint && (
@@ -81,10 +81,10 @@ const GameDashboard: React.FC = () => {
           <AssetList onAssetClick={(id, name) => setSelectedAsset({ id, name })} />
         </div>
 
-        <div className="space-y-4">
-          {/* Enlarged Market News card with more height */}
-          <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl h-[calc(100vh-24rem)]">
-            <CardContent className="p-4">
+        <div className="space-y-4 flex flex-col h-full overflow-hidden">
+          {/* Market News card that fills available vertical space */}
+          <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl flex-grow">
+            <CardContent className="p-4 flex flex-col h-full">
               <h2 className="text-lg font-semibold mb-3 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent flex items-center justify-between">
                 <span>Market News</span>
                 <TooltipProvider>
@@ -98,7 +98,7 @@ const GameDashboard: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </h2>
-              <div className="h-[calc(100%-3rem)] overflow-auto">
+              <div className="flex-grow overflow-auto">
                 <NewsPanel onAssetClick={handleAssetClick} />
               </div>
             </CardContent>
