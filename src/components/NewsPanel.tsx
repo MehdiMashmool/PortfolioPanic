@@ -23,12 +23,10 @@ const NewsPanel: React.FC<NewsPanelProps> = ({ onAssetClick }) => {
   const { news } = state;
   const [expanded, setExpanded] = useState(false);
   
-  // Sort news by timestamp descending (newest first)
   const sortedNews = [...news].sort((a, b) => b.timestamp - a.timestamp);
   
   const visibleNews = expanded ? sortedNews : sortedNews.slice(0, 3);
   
-  // Function to get impact indicator based on magnitude and sentiment
   const getImpactIndicator = (magnitude: number, sentiment: 'positive' | 'negative' | 'neutral') => {
     if (magnitude >= 0.7) {
       if (sentiment === 'positive') {
@@ -51,13 +49,8 @@ const NewsPanel: React.FC<NewsPanelProps> = ({ onAssetClick }) => {
     }
   };
 
-  const getUrgencyText = (magnitude: number) => {
-    if (magnitude >= 0.7) return "ACT NOW";
-    if (magnitude >= 0.5) return "BREAKING";
-    if (magnitude >= 0.3) return "ALERT";
-    return null;
-  };
-  
+  // Removed getUrgencyText function
+
   if (sortedNews.length === 0) {
     return (
       <div className="text-center py-4 text-neutral">
@@ -71,13 +64,10 @@ const NewsPanel: React.FC<NewsPanelProps> = ({ onAssetClick }) => {
       <ScrollArea className={expanded ? "h-96" : "h-64"}>
         <div className="space-y-3">
           {visibleNews.map((item) => {
-            // Format timestamp
             const date = new Date(item.timestamp);
             const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // Get sentiment class for border color
             const sentimentClass = getNewsSentimentClass(item.sentiment);
-            const urgencyText = getUrgencyText(item.magnitude);
             
             return (
               <div 
@@ -90,12 +80,6 @@ const NewsPanel: React.FC<NewsPanelProps> = ({ onAssetClick }) => {
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
-                        {urgencyText && (
-                          <Badge variant={item.sentiment === 'positive' ? 'success' : item.sentiment === 'negative' ? 'destructive' : 'warning'} 
-                            className="text-[10px] h-4 px-1 animate-pulse">
-                            {urgencyText}
-                          </Badge>
-                        )}
                       </div>
                       <p className="text-xs text-neutral">{item.content}</p>
                     </div>

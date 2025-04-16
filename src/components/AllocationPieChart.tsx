@@ -19,14 +19,9 @@ const AllocationPieChart: React.FC<AllocationPieChartProps> = ({ data, className
     return <div className={`h-[100px] ${className}`}>No allocation data</div>;
   }
 
-  // Calculate a summary string
   const summaryText = data.length > 1 
     ? `${data.length} assets` 
     : data[0].name;
-  
-  const percentText = data.length > 1 
-    ? "100%" 
-    : "100%";
 
   return (
     <div className={`h-[100px] ${className} flex items-center justify-center relative`}>
@@ -62,10 +57,8 @@ const AllocationPieChart: React.FC<AllocationPieChartProps> = ({ data, className
         </PieChart>
       </ResponsiveContainer>
       
-      {/* Center label */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-        <div className="text-xs font-medium text-gray-300">{percentText}</div>
-        <div className="text-xs text-gray-400">of portfolio</div>
+        <div className="text-xs text-gray-400">{summaryText}</div>
       </div>
     </div>
   );

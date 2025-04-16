@@ -12,7 +12,6 @@ const InvestmentSummary = ({ totalInvested, netWorth, cash }: InvestmentSummaryP
   const investedPercentage = netWorth > 0 ? (totalInvested / netWorth * 100) : 0;
   const cashPercentage = netWorth > 0 ? (cash / netWorth * 100) : 0;
   
-  // Determine if we should show warning for cash levels
   const lowCash = cashPercentage < 10;
   const highCash = cashPercentage > 50;
   
@@ -23,9 +22,6 @@ const InvestmentSummary = ({ totalInvested, netWorth, cash }: InvestmentSummaryP
           <div className="text-sm text-indigo-200 font-medium flex items-center">
             <DollarSign size={14} className="mr-1 text-indigo-400" />
             Invested
-          </div>
-          <div className="text-xs px-1.5 py-0.5 rounded-full bg-indigo-900/60 border border-indigo-700/30 text-indigo-200">
-            {investedPercentage.toFixed(1)}% of portfolio
           </div>
         </div>
         <div className="text-2xl font-bold mt-1 text-white">
@@ -48,15 +44,6 @@ const InvestmentSummary = ({ totalInvested, netWorth, cash }: InvestmentSummaryP
               lowCash ? 'text-red-400' : highCash ? 'text-amber-400' : 'text-green-400'
             }`} />
             Available Cash
-          </div>
-          <div className={`text-xs px-1.5 py-0.5 rounded-full ${
-            lowCash 
-              ? 'bg-red-900/60 border border-red-700/30 text-red-200' 
-              : highCash 
-                ? 'bg-amber-900/60 border border-amber-700/30 text-amber-200'
-                : 'bg-green-900/60 border border-green-700/30 text-green-200'
-          }`}>
-            {cashPercentage.toFixed(1)}% of portfolio
           </div>
         </div>
         <div className="text-2xl font-bold mt-1 text-white">

@@ -24,7 +24,6 @@ const AllocationSection = ({ holdings, assets, cash }: AllocationSectionProps) =
       }
     });
     
-    // Calculate total portfolio value including cash
     const totalPortfolio = totalInvested + cash;
     
     if (totalInvested === 0) {
