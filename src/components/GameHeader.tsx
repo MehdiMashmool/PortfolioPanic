@@ -1,16 +1,17 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Bell, Settings } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { toast } from '@/hooks/use-toast';
 import { useGame } from '../contexts/GameContext';
-import { useNavigate } from 'react-router-dom';
 
-const GameHeader = () => {
+interface GameHeaderProps {
+  onSettingsClick: () => void;
+}
+
+const GameHeader = ({ onSettingsClick }: GameHeaderProps) => {
   const { state } = useGame();
-  const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
-  const navigate = useNavigate();
 
   return (
     <header className="border-b border-white/10 bg-[#0F172A]/80 backdrop-blur-xl">
@@ -49,22 +50,7 @@ const GameHeader = () => {
               <TooltipTrigger asChild>
                 <Settings 
                   className="w-5 h-5 text-gray-400 cursor-pointer hover:text-white transition-colors" 
-                  onClick={() => {
-                    setShowSettingsMenu(!showSettingsMenu);
-                    toast({
-                      title: "Settings",
-                      description: "Use settings to return to the main menu or adjust game options",
-                      duration: 3000,
-                      action: (
-                        <button 
-                          onClick={() => navigate('/')} 
-                          className="bg-blue-600 text-white px-3 py-1 rounded text-xs"
-                        >
-                          Return to Menu
-                        </button>
-                      )
-                    });
-                  }}
+                  onClick={onSettingsClick}
                 />
               </TooltipTrigger>
               <TooltipContent>

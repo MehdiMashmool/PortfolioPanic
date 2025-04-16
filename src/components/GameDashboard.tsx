@@ -11,8 +11,9 @@ import HoldingsList from './HoldingsList';
 import SettingsDialog from './SettingsDialog';
 
 const GameDashboard = () => {
-  const { state } = useGame();
+  const { state, nextRound, endGame } = useGame();
   const [selectedAsset, setSelectedAsset] = useState<{ id: string, name: string } | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleAssetClick = (id: string, name: string) => {
     setSelectedAsset({ id, name });
@@ -25,9 +26,12 @@ const GameDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative">
-      <SettingsDialog onClose={() => {}} />
+      <SettingsDialog 
+        isOpen={isSettingsOpen} 
+        onOpenChange={setIsSettingsOpen} 
+      />
       <div className="container mx-auto p-4 space-y-6">
-        <GameHeader />
+        <GameHeader onSettingsClick={() => setIsSettingsOpen(true)} />
         <PortfolioSummary />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">

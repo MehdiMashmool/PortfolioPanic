@@ -7,11 +7,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Settings } from 'lucide-react';
 
 interface SettingsDialogProps {
-  onClose: () => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
-  const [isOpen, setIsOpen] = React.useState(false);
+const SettingsDialog = ({ isOpen, onOpenChange }: SettingsDialogProps) => {
   const [showConfirmation, setShowConfirmation] = React.useState(false);
   const navigate = useNavigate();
 
@@ -25,16 +25,7 @@ const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute right-4 top-4 z-50"
-        onClick={() => setIsOpen(true)}
-      >
-        <Settings className="h-5 w-5" />
-      </Button>
-
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
         <DialogContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <DialogHeader>
             <DialogTitle>Settings</DialogTitle>
@@ -54,7 +45,7 @@ const SettingsDialog = ({ onClose }: SettingsDialogProps) => {
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsOpen(false)}>
+            <Button variant="ghost" onClick={() => onOpenChange(false)}>
               Close
             </Button>
           </DialogFooter>
