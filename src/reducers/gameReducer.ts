@@ -1,7 +1,9 @@
-import { GameState, TradeAction } from '../types/game';
+
+import { GameState, TradeAction, EventDensity } from '../types/game';
 import { calculateNewPrices } from '../utils/marketLogic';
 import { Mission } from '../types/missions';
 import { checkMissionProgress } from '../utils/missionGenerator';
+import { getRoundEventDensity } from '../utils/difficultyManager';
 
 type Action =
   | { type: 'START_GAME' }
@@ -16,7 +18,11 @@ type Action =
   | { type: 'UPDATE_NET_WORTH'; payload?: { timestamp?: number } }
   | { type: 'UPDATE_MISSION_PROGRESS'; payload?: { missionId?: string } }
   | { type: 'COMPLETE_MISSION'; payload: { missionId: string } }
-  | { type: 'FAIL_MISSION'; payload: { missionId: string } };
+  | { type: 'FAIL_MISSION'; payload: { missionId: string } }
+  | { type: 'UPDATE_EVENT_DENSITY'; payload: EventDensity }
+  | { type: 'SET_LAST_NEWS_UPDATE'; payload: number }
+  | { type: 'SCHEDULE_NEWS'; payload: number[] }
+  | { type: 'TRIGGER_EVENT'; payload: number };
 
 export const gameReducer = (state: GameState, action: Action): GameState => {
   switch (action.type) {
@@ -34,9 +40,12 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         news: [],
         activeNews: [],
         lastPriceUpdate: now,
+        lastNewsUpdate: now,
         activeMissions: state.missions[1] || [],
         completedMissions: [],
-        missionRewards: {}
+        missionRewards: {},
+        eventDensity: getRoundEventDensity(1),
+        scheduledEvents: []
       };
     }
       
@@ -58,6 +67,9 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
       // Get missions for the next round
       const nextRoundMissions = state.missions[nextRound] || [];
       
+      // Get event density for the new round
+      const eventDensity = getRoundEventDensity(nextRound);
+      
       return {
         ...state,
         round: nextRound,
@@ -65,8 +77,10 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         isPaused: false,
         activeNews: [],
         lastPriceUpdate: now,
+        lastNewsUpdate: now,
         activeMissions: nextRoundMissions,
         completedMissions: [...state.completedMissions, ...state.activeMissions.filter(m => m.status === 'completed')],
+        eventDensity
       };
     }
 
@@ -140,13 +154,32 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
       return {
         ...state,
         news: [...state.news, action.payload],
-        activeNews: [...state.activeNews, action.payload]
+        activeNews: [...state.activeNews, action.payload],
+        lastNewsUpdate: Date.now()
       };
 
     case 'EXPIRE_NEWS':
       return {
         ...state,
         activeNews: state.activeNews.filter(news => news.id !== action.payload)
+      };
+
+    case 'UPDATE_EVENT_DENSITY':
+      return {
+        ...state,
+        eventDensity: action.payload
+      };
+
+    case 'SET_LAST_NEWS_UPDATE':
+      return {
+        ...state,
+        lastNewsUpdate: action.payload
+      };
+
+    case 'SCHEDULE_NEWS':
+      return {
+        ...state,
+        scheduledEvents: action.payload
       };
 
     case 'EXECUTE_TRADE': {

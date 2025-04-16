@@ -2,7 +2,7 @@
 import { CardHeader, CardTitle } from './ui/card';
 import { Progress } from './ui/progress';
 import { useGame } from '../contexts/GameContext';
-import { AlertTriangle, ChevronRight, Flag, Clock } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Flag, Clock, Gauge } from 'lucide-react';
 import { Button } from './ui/button';
 import RoundMissions from './RoundMissions';
 import {
@@ -37,6 +37,15 @@ const RoundInfo = () => {
     return 'bg-blue-500';
   };
 
+  // Get difficulty level based on round
+  const getDifficultyLevel = () => {
+    if (round <= 3) return { text: 'Easy', color: 'text-green-400' };
+    if (round <= 6) return { text: 'Medium', color: 'text-yellow-400' };
+    if (round <= 8) return { text: 'Hard', color: 'text-orange-400' };
+    return { text: 'Chaotic', color: 'text-red-400 animate-pulse' };
+  };
+
+  const difficulty = getDifficultyLevel();
   const isRoundComplete = timeRemaining <= 0 && !isGameOver;
   
   return (
@@ -56,6 +65,19 @@ const RoundInfo = () => {
         value={progressPercentage} 
         className={`h-2 mt-2 ${getBarColor()}`} 
       />
+      
+      <div className="flex items-center mt-2 text-xs justify-between">
+        <div className="flex items-center">
+          <Gauge size={14} className="mr-1.5" />
+          <span>Difficulty: </span>
+          <span className={`font-bold ml-1 ${difficulty.color}`}>{difficulty.text}</span>
+        </div>
+        
+        <div className="text-xs text-gray-400">
+          {round < 10 ? `${10 - round} rounds remaining` : 'Final round!'}
+        </div>
+      </div>
+
       {timeRemaining <= 10 && !isGameOver && !isRoundComplete && (
         <div className="text-xs text-red-400 mt-1 animate-pulse text-center">
           Time running out! Make your final trades for this round.

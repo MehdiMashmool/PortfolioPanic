@@ -1,6 +1,7 @@
 
 import { Asset, GameState } from '../types/game';
 import { generateGameMissions } from '../utils/missionGenerator';
+import { getRoundEventDensity } from '../utils/difficultyManager';
 
 export const initialAssets: Asset[] = [
   {
@@ -48,6 +49,9 @@ export const initialAssets: Asset[] = [
 // Generate the initial set of missions for all rounds
 const gameMissions = generateGameMissions();
 
+// Initial event density (will be updated when game starts)
+const initialEventDensity = getRoundEventDensity(1);
+
 export const initialGameState: GameState = {
   assets: initialAssets,
   cash: 10000,
@@ -63,5 +67,8 @@ export const initialGameState: GameState = {
   missions: gameMissions,
   activeMissions: gameMissions[1] || [], // Missions for round 1
   completedMissions: [],
-  missionRewards: {}
+  missionRewards: {},
+  lastNewsUpdate: Date.now(),
+  eventDensity: initialEventDensity,
+  scheduledEvents: []
 };

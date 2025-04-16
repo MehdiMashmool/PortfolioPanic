@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../contexts/GameContext';
 import { getNewsSentimentClass } from '../utils/newsGenerator';
 import { ScrollArea } from './ui/scroll-area';
@@ -9,10 +9,15 @@ import {
   AlertTriangle, 
   TrendingUp, 
   TrendingDown,
-  Info
+  Info,
+  Bell,
+  Volume2,
+  Flash
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { NewsItem } from '../types/game';
+import { toast } from '@/hooks/use-toast';
 
 interface NewsPanelProps {
   onAssetClick?: (id: string, name: string) => void;
@@ -22,19 +27,41 @@ const NewsPanel: React.FC<NewsPanelProps> = ({ onAssetClick }) => {
   const { state } = useGame();
   const { news } = state;
   const [expanded, setExpanded] = useState(false);
+  const [flashNews, setFlashNews] = useState<string | null>(null);
   
   const sortedNews = [...news].sort((a, b) => b.timestamp - a.timestamp);
   
   const visibleNews = expanded ? sortedNews : sortedNews.slice(0, 3);
+
+  // Flash animation for breaking news
+  useEffect(() => {
+    if (news.length > 0) {
+      const latestNews = news[news.length - 1];
+      if (latestNews.magnitude >= 0.7) {
+        setFlashNews(latestNews.id);
+        
+        // Play sound for high-impact news
+        if (latestNews.magnitude >= 0.8) {
+          // You would implement sound effects here
+          console.log('Playing breaking news sound');
+        }
+        
+        setTimeout(() => setFlashNews(null), 2000);
+      }
+    }
+  }, [news]);
   
-  const getImpactIndicator = (magnitude: number, sentiment: 'positive' | 'negative' | 'neutral') => {
+  const getImpactIndicator = (magnitude: number, sentiment: 'positive' | 'negative' | 'neutral', newsId: string) => {
+    const isFlashing = flashNews === newsId;
+    const flashClass = isFlashing ? 'animate-pulse text-yellow-400' : '';
+    
     if (magnitude >= 0.7) {
       if (sentiment === 'positive') {
-        return <TrendingUp size={16} className="text-profit animate-pulse" />;
+        return <TrendingUp size={16} className={`text-profit ${flashClass}`} />;
       } else if (sentiment === 'negative') {
-        return <TrendingDown size={16} className="text-loss animate-pulse" />;
+        return <TrendingDown size={16} className={`text-loss ${flashClass}`} />;
       } else {
-        return <AlertTriangle size={16} className="text-warning animate-pulse" />;
+        return <AlertTriangle size={16} className={`text-warning ${flashClass}`} />;
       }
     } else if (magnitude >= 0.4) {
       if (sentiment === 'positive') {
@@ -49,7 +76,28 @@ const NewsPanel: React.FC<NewsPanelProps> = ({ onAssetClick }) => {
     }
   };
 
-  // Removed getUrgencyText function
+  const getNewsIcon = (news: NewsItem) => {
+    // Add special icons for different news types
+    if (news.chainId && news.chainSequence && news.chainSequence > 1) {
+      return <Bell size={16} className="text-amber-400 mr-1" />;
+    } else if (news.magnitude >= 0.8) {
+      return <Flash size={16} className="text-red-400 mr-1" />;
+    } else if (news.delayedEffect) {
+      return <Volume2 size={16} className="text-blue-400 mr-1" />;
+    }
+    return null;
+  };
+
+  const handleNewsClick = (news: NewsItem) => {
+    // If it's a high impact news, show detail in toast
+    if (news.magnitude >= 0.6) {
+      toast({
+        title: news.title,
+        description: news.content,
+        duration: 5000,
+      });
+    }
+  };
 
   if (sortedNews.length === 0) {
     return (
@@ -68,18 +116,31 @@ const NewsPanel: React.FC<NewsPanelProps> = ({ onAssetClick }) => {
             const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
             const sentimentClass = getNewsSentimentClass(item.sentiment);
+            const isFlashing = flashNews === item.id;
+            const newsClass = isFlashing 
+              ? `p-3 border-l-4 ${sentimentClass} bg-gradient-to-br from-yellow-900/30 to-dark/40 rounded-r-md animate-fade-in group hover:shadow-lg transition-all duration-300`
+              : `p-3 border-l-4 ${sentimentClass} bg-gradient-to-br from-dark/80 to-dark/40 rounded-r-md animate-fade-in group hover:shadow-lg transition-all duration-300`;
             
             return (
               <div 
                 key={item.id}
-                className={`p-3 border-l-4 ${sentimentClass} bg-gradient-to-br from-dark/80 to-dark/40 rounded-r-md animate-fade-in group hover:shadow-lg transition-all duration-300`}
+                className={newsClass}
+                onClick={() => handleNewsClick(item)}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-start space-x-2">
-                    {getImpactIndicator(item.magnitude, item.sentiment)}
+                    {getImpactIndicator(item.magnitude, item.sentiment, item.id)}
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
+                        {getNewsIcon(item)}
+                        <h4 className={`font-semibold text-sm mb-1 ${isFlashing ? 'text-yellow-200' : ''}`}>
+                          {item.title}
+                        </h4>
+                        {item.chainSequence && (
+                          <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4">
+                            Update {item.chainSequence}
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-xs text-neutral">{item.content}</p>
                     </div>
@@ -102,7 +163,10 @@ const NewsPanel: React.FC<NewsPanelProps> = ({ onAssetClick }) => {
                             asset.color === 'oil' ? 'bg-gray-900/50 text-gray-300 hover:bg-gray-900' :
                             'bg-purple-900/50 text-purple-300 hover:bg-purple-900'
                           }`}
-                          onClick={() => onAssetClick && onAssetClick(assetId, asset.name)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAssetClick && onAssetClick(assetId, asset.name);
+                          }}
                         >
                           {asset.ticker}
                         </Badge>

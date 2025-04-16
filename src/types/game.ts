@@ -1,3 +1,4 @@
+
 export type Asset = {
   id: string;
   name: string;
@@ -27,6 +28,11 @@ export type NewsItem = {
   magnitude: number;
   timestamp: number;
   isActive: boolean;
+  // Add these properties for multi-phase events
+  chainId?: string;
+  chainSequence?: number;
+  delayedEffect?: boolean;
+  delayedRound?: number;
 };
 
 export type TradeAction = 'buy' | 'sell' | 'short' | 'cover';
@@ -39,6 +45,16 @@ export type NetWorthHistoryEntry = {
 
 export type MissionRewards = {
   [key: string]: number | boolean;
+};
+
+export type EventDensity = {
+  minEvents: number;
+  maxEvents: number;
+  minTimeBetween: number;
+  maxTimeBetween: number;
+  chanceOfChainedEvent: number;
+  chanceOfDelayedEvent: number;
+  chanceOfHighImpactEvent: number;
 };
 
 export type GameState = {
@@ -60,4 +76,7 @@ export type GameState = {
   activeMissions: any[];
   completedMissions: any[];
   missionRewards: MissionRewards;
+  lastNewsUpdate: number;
+  eventDensity: EventDensity;
+  scheduledEvents: NewsItem[];
 };
