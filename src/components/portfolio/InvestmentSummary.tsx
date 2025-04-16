@@ -1,4 +1,3 @@
-
 import { formatCurrency } from '@/utils/marketLogic';
 import { ArrowUp, ArrowDown, Wallet, DollarSign } from 'lucide-react';
 
@@ -9,11 +8,8 @@ interface InvestmentSummaryProps {
 }
 
 const InvestmentSummary = ({ totalInvested, netWorth, cash }: InvestmentSummaryProps) => {
-  const investedPercentage = netWorth > 0 ? (totalInvested / netWorth * 100) : 0;
-  const cashPercentage = netWorth > 0 ? (cash / netWorth * 100) : 0;
-  
-  const lowCash = cashPercentage < 10;
-  const highCash = cashPercentage > 50;
+  const lowCash = cash < (netWorth * 0.1);
+  const highCash = cash > (netWorth * 0.5);
   
   return (
     <div className="grid grid-cols-2 gap-4">

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatPercentage } from '../utils/marketLogic';
@@ -56,10 +55,6 @@ const AllocationPieChart: React.FC<AllocationPieChartProps> = ({ data, className
           />
         </PieChart>
       </ResponsiveContainer>
-      
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-        <div className="text-xs text-gray-400">{summaryText}</div>
-      </div>
     </div>
   );
 };

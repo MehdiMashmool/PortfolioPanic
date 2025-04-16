@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
@@ -30,7 +29,6 @@ const GameDashboard: React.FC = () => {
   const [selectedAsset, setSelectedAsset] = useState<SelectedAsset>(null);
   const [showHint, setShowHint] = useState(true);
 
-  // Show hint for first-time users
   useEffect(() => {
     const hasTraded = Object.values(state.holdings).some(h => h.quantity > 0);
     
@@ -45,7 +43,6 @@ const GameDashboard: React.FC = () => {
     }
   }, []);
   
-  // Handle asset click from news panel
   const handleAssetClick = (id: string, name: string) => {
     setSelectedAsset({ id, name });
   };
@@ -58,7 +55,6 @@ const GameDashboard: React.FC = () => {
         <div className="lg:col-span-2 space-y-6">
           <PortfolioSummary />
 
-          {/* Get Started Hint Card */}
           {Object.keys(state.holdings).length === 0 && showHint && (
             <Card className="bg-blue-900/30 border border-blue-500/50 shadow-lg animate-pulse">
               <CardContent className="p-4 flex items-center justify-between">
@@ -100,7 +96,9 @@ const GameDashboard: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </h2>
-              <NewsPanel onAssetClick={handleAssetClick} />
+              <div className="h-[400px]">
+                <NewsPanel onAssetClick={handleAssetClick} />
+              </div>
             </CardContent>
           </Card>
 
@@ -136,15 +134,6 @@ const GameDashboard: React.FC = () => {
                 Game Progress
               </h2>
               <RoundInfo />
-              <div>
-                <Button 
-                  variant="destructive"
-                  onClick={endGame}
-                  className="w-full bg-red-900/50 hover:bg-red-900/80 text-white border border-red-700/50"
-                >
-                  End Game
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>

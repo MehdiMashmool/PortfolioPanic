@@ -1,4 +1,3 @@
-
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
@@ -92,7 +91,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
-            domain={[minTime, maxTime]}
+            domain={['dataMin', 'dataMax']}
             allowDecimals={false}
             tickFormatter={(value) => `${value}s`}
             label={{ 
