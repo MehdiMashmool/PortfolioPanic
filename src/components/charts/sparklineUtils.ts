@@ -1,6 +1,6 @@
 
 export const calculateChartDomains = (
-  data: Array<{ value: number }>,
+  data: Array<{ value: number, timeInSeconds?: number }>,
   amplifyVisuals: boolean = true
 ) => {
   const values = data.map(item => item.value);
@@ -21,38 +21,37 @@ export const calculateChartDomains = (
   };
 };
 
-export const calculateTimeAxis = (
-  data: Array<{ timestamp?: number }>,
-  defaultInterval: number = 1000
-) => {
-  if (!data.length) return { minTime: 0, maxTime: 60, interval: defaultInterval };
-
-  const timestamps = data
-    .map(item => item.timestamp || 0)
-    .filter(timestamp => timestamp > 0);
-
-  if (timestamps.length < 2) {
-    return { minTime: 0, maxTime: 60, interval: defaultInterval };
-  }
-
-  const minTime = Math.min(...timestamps);
-  const maxTime = Math.max(...timestamps);
-  const timeRange = maxTime - minTime;
-
-  // Calculate a reasonable interval based on the time range
-  let interval = Math.max(Math.floor(timeRange / 5), defaultInterval);
-  interval = Math.ceil(interval / defaultInterval) * defaultInterval;
-
-  return {
-    minTime,
-    maxTime,
-    interval
-  };
-};
-
 export const formatTimeLabel = (seconds: number): string => {
   if (seconds < 60) return `${seconds}s`;
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${minutes}m${remainingSeconds ? ` ${remainingSeconds}s` : ''}`;
+};
+
+export const interpolateData = (
+  baseData: Array<{ value: number; timestamp?: number }>, 
+  targetLength: number
+) => {
+  if (baseData.length >= targetLength) return baseData;
+
+  const interpolatedData: Array<{ value: number; timestamp?: number }> = [];
+  const lengthMultiplier = (baseData.length - 1) / (targetLength - 1);
+
+  for (let i = 0; i < targetLength; i++) {
+    const index = Math.floor(i * lengthMultiplier);
+    const nextIndex = Math.min(index + 1, baseData.length - 1);
+    
+    const currentValue = baseData[index].value;
+    const nextValue = baseData[nextIndex].value;
+    const interpolationFactor = (i * lengthMultiplier) - index;
+    
+    const interpolatedValue = currentValue + (nextValue - currentValue) * interpolationFactor;
+    
+    interpolatedData.push({
+      value: interpolatedValue,
+      timestamp: baseData[index].timestamp
+    });
+  }
+
+  return interpolatedData;
 };
