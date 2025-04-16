@@ -1,3 +1,4 @@
+
 import { AchievementType } from '../AchievementBadge';
 import PerformanceChart from '../PerformanceChart';
 import AchievementBadge from '../AchievementBadge';
@@ -19,7 +20,7 @@ const PerformanceSection = ({
   isDiversified
 }: PerformanceSectionProps) => {
   return (
-    <div className="mt-6 p-4 bg-panel/30 rounded-lg border border-panel-light/30">
+    <div className="mt-4 p-4 bg-panel/30 rounded-lg border border-panel-light/30">
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center">
           <TrendingUp size={16} className="mr-2 text-gray-400" />
@@ -43,7 +44,7 @@ const PerformanceSection = ({
           <AchievementBadge type="diversified" unlocked={isDiversified} size="sm" />
         </div>
       </div>
-      <PerformanceChart data={netWorthHistory} height={250} />
+      <PerformanceChart data={netWorthHistory} height={200} />
     </div>
   );
 };

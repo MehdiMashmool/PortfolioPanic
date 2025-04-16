@@ -49,11 +49,11 @@ const GameDashboard: React.FC = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] text-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] text-white flex flex-col">
       <GameHeader />
 
-      <main className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <main className="flex-grow container mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 space-y-4">
           <PortfolioSummary />
 
           {Object.keys(state.holdings).length === 0 && showHint && (
@@ -81,11 +81,11 @@ const GameDashboard: React.FC = () => {
           <AssetList onAssetClick={(id, name) => setSelectedAsset({ id, name })} />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Enlarged Market News card with more height */}
-          <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent flex items-center justify-between">
+          <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl h-[calc(100vh-24rem)]">
+            <CardContent className="p-4">
+              <h2 className="text-lg font-semibold mb-3 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent flex items-center justify-between">
                 <span>Market News</span>
                 <TooltipProvider>
                   <Tooltip>
@@ -98,46 +98,48 @@ const GameDashboard: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </h2>
-              <div className="h-[500px]">
+              <div className="h-[calc(100%-3rem)] overflow-auto">
                 <NewsPanel onAssetClick={handleAssetClick} />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent flex items-center justify-between">
-                <span>Market Health</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle size={16} className="text-gray-400 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="bg-dark border-highlight max-w-xs">
-                      <p className="text-xs">Market health affects volatility. Lower health means higher risk and potentially higher rewards!</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </h2>
-              <MarketHealth health={state.marketHealth} />
-              
-              {state.marketHealth < 30 && (
-                <div className="mt-4 flex items-center text-sm text-red-400">
-                  <AlertTriangle size={16} className="mr-1 animate-pulse" />
-                  <span>Warning: Market highly volatile!</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl">
+              <CardContent className="p-4">
+                <h2 className="text-lg font-semibold mb-3 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent flex items-center justify-between">
+                  <span>Market Health</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle size={16} className="text-gray-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="bg-dark border-highlight max-w-xs">
+                        <p className="text-xs">Market health affects volatility. Lower health means higher risk and potentially higher rewards!</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </h2>
+                <MarketHealth health={state.marketHealth} />
+                
+                {state.marketHealth < 30 && (
+                  <div className="mt-4 flex items-center text-sm text-red-400">
+                    <AlertTriangle size={16} className="mr-1 animate-pulse" />
+                    <span>Warning: Market highly volatile!</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl">
-            <CardContent className="p-6 space-y-4">
-              <h2 className="text-lg font-semibold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                Game Progress
-              </h2>
-              <RoundInfo />
-            </CardContent>
-          </Card>
+            <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl">
+              <CardContent className="p-4">
+                <h2 className="text-lg font-semibold mb-3 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                  Game Progress
+                </h2>
+                <RoundInfo />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
 
