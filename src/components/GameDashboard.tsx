@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import GameHeader from './GameHeader';
 import PortfolioSummary from './PortfolioSummary';
 import AssetList from './AssetList';
@@ -12,6 +12,12 @@ import SettingsDialog from './SettingsDialog';
 
 const GameDashboard = () => {
   const { state } = useGame();
+  const [selectedAsset, setSelectedAsset] = useState<{ id: string, name: string } | null>(null);
+
+  const handleAssetClick = (id: string, name: string) => {
+    setSelectedAsset({ id, name });
+    // You can add additional logic here if needed, such as opening a modal
+  };
 
   if (state.isGameOver) {
     return <GameOverScreen />;
@@ -25,7 +31,7 @@ const GameDashboard = () => {
         <PortfolioSummary />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <AssetList />
+            <AssetList onAssetClick={handleAssetClick} />
           </div>
           <div className="space-y-6">
             <RoundInfo />
