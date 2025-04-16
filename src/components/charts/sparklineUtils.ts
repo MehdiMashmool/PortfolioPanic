@@ -21,13 +21,38 @@ export const calculateChartDomains = (
   };
 };
 
-export const getLineColor = (
-  startValue: number,
-  currentValue: number,
-  defaultColor: string = "#10B981"
+export const calculateTimeAxis = (
+  data: Array<{ timestamp?: number }>,
+  defaultInterval: number = 1000
 ) => {
-  const isPositive = currentValue >= startValue;
-  return isPositive ? '#10B981' : '#EF4444';
+  if (!data.length) return { minTime: 0, maxTime: 60, interval: defaultInterval };
+
+  const timestamps = data
+    .map(item => item.timestamp || 0)
+    .filter(timestamp => timestamp > 0);
+
+  if (timestamps.length < 2) {
+    return { minTime: 0, maxTime: 60, interval: defaultInterval };
+  }
+
+  const minTime = Math.min(...timestamps);
+  const maxTime = Math.max(...timestamps);
+  const timeRange = maxTime - minTime;
+
+  // Calculate a reasonable interval based on the time range
+  let interval = Math.max(Math.floor(timeRange / 5), defaultInterval);
+  interval = Math.ceil(interval / defaultInterval) * defaultInterval;
+
+  return {
+    minTime,
+    maxTime,
+    interval
+  };
 };
 
-export const getAreaColor = (lineColor: string) => `${lineColor}20`;
+export const formatTimeLabel = (seconds: number): string => {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}m${remainingSeconds ? ` ${remainingSeconds}s` : ''}`;
+};

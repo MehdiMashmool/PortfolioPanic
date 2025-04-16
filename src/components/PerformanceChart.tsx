@@ -1,3 +1,4 @@
+
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer } from './ui/chart';
@@ -39,7 +40,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
     };
   });
 
-  // Calculate time domain
+  // Calculate meaningful time domain
   const timeValues = formattedData.map(item => item.timeInSeconds);
   const minTime = Math.min(...timeValues);
   const maxTime = Math.max(...timeValues);
@@ -48,7 +49,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   // Generate meaningful tick values
   const generateTicks = () => {
     const tickCount = 5;
-    const interval = Math.floor(timeRange / (tickCount - 1));
+    const interval = Math.ceil(timeRange / (tickCount - 1));
     return Array.from({ length: tickCount }, (_, i) => minTime + i * interval);
   };
 
@@ -58,9 +59,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const config = {
     portfolio: {
       label: 'Portfolio Value',
-      color: formattedData[formattedData.length - 1]?.value >= formattedData[0]?.value 
-        ? '#10B981' 
-        : '#EF4444',
+      color: isPositive ? '#10B981' : '#EF4444',
     },
   };
 
@@ -90,7 +89,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             }}
           />
           <YAxis 
-            domain={['dataMin', 'dataMax']}
+            domain={['auto', 'auto']}
             tickFormatter={(value) => formatCurrency(value).replace('$', '')}
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
@@ -116,7 +115,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
           </defs>
           
           <Area
-            type="linear"
+            type="monotone"
             dataKey="value"
             stroke="none"
             fill="url(#portfolioGradient)"
@@ -124,7 +123,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
           />
           
           <Line
-            type="linear"
+            type="monotone"
             dataKey="value"
             stroke={config.portfolio.color}
             strokeWidth={2}
