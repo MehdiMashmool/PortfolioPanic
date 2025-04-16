@@ -1,5 +1,5 @@
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer } from './ui/chart';
 import CustomTooltip from './charts/CustomTooltip';
@@ -64,37 +64,27 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
 
   const customTicks = generateTicks();
 
-  // Required chart config
-  const config = {
-    portfolio: {
-      label: 'Portfolio Value',
-      color: isPositive ? '#10B981' : '#EF4444',
-    },
-  };
-
   return (
     <div className="h-full w-full portfolio-chart">
-      <ChartContainer className="h-full w-full" config={config}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={formattedData}
-            margin={{ top: 10, right: 20, left: 20, bottom: 30 }}
-          >
-            <defs>
-              <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop 
-                  offset="5%" 
-                  stopColor={config.portfolio.color} 
-                  stopOpacity={0.4} 
-                />
-                <stop 
-                  offset="95%" 
-                  stopColor={config.portfolio.color} 
-                  stopOpacity={0} 
-                />
-              </linearGradient>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={formattedData}
+          margin={{ top: 10, right: 20, left: 20, bottom: 30 }}
+        >
+          <defs>
+            <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop 
+                offset="5%" 
+                stopColor={isPositive ? '#10B981' : '#EF4444'} 
+                stopOpacity={0.4} 
+              />
+              <stop 
+                offset="95%" 
+                stopColor={isPositive ? '#10B981' : '#EF4444'} 
+                stopOpacity={0} 
+              />
             </defs>
-            
+          
             <CartesianGrid vertical={false} stroke="#2A303C" strokeDasharray="3 3" />
             
             <XAxis 
@@ -131,32 +121,23 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             
             <Tooltip content={<CustomTooltip />} />
             
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="none"
-              fill="url(#portfolioGradient)"
-              fillOpacity={0.7}
-            />
-            
             <Line
               type="monotone"
               dataKey="value"
-              stroke={config.portfolio.color}
+              stroke={isPositive ? '#10B981' : '#EF4444'}
               strokeWidth={2.5}
               dot={false}
               activeDot={{ 
                 r: 5, 
-                stroke: config.portfolio.color, 
+                stroke: isPositive ? '#10B981' : '#EF4444', 
                 strokeWidth: 2, 
                 fill: "#1A1F2C" 
               }}
             />
           </LineChart>
         </ResponsiveContainer>
-      </ChartContainer>
-    </div>
-  );
+      </div>
+    );
 };
 
 export default PerformanceChart;

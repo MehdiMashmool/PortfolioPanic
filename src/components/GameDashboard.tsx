@@ -49,7 +49,7 @@ const GameDashboard: React.FC = () => {
   };
   
   return (
-    <div className="min-h-screen h-screen flex flex-col bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] text-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] text-white overflow-hidden">
       <GameHeader />
 
       <main className="flex-grow container mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-3 gap-4 overflow-hidden">

@@ -3,7 +3,7 @@ import { AchievementType } from '../AchievementBadge';
 import PerformanceChart from '../PerformanceChart';
 import AchievementBadge from '../AchievementBadge';
 import { NetWorthHistoryEntry } from '@/types/game';
-import { HelpCircle, DollarSign, TrendingUp } from 'lucide-react';
+import { HelpCircle, TrendingUp } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 interface PerformanceSectionProps {
@@ -20,7 +20,7 @@ const PerformanceSection = ({
   isDiversified
 }: PerformanceSectionProps) => {
   return (
-    <div className="mt-4 p-4 bg-panel/30 rounded-lg border border-panel-light/30">
+    <div className="mt-4 p-4 bg-panel/30 rounded-lg border border-panel-light/30 flex flex-col h-[350px]">
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center">
           <TrendingUp size={16} className="mr-2 text-gray-400" />
@@ -44,7 +44,7 @@ const PerformanceSection = ({
           <AchievementBadge type="diversified" unlocked={isDiversified} size="sm" />
         </div>
       </div>
-      <div className="w-full h-[300px]"> {/* Increase fixed height for better visibility */}
+      <div className="flex-grow w-full"> 
         <PerformanceChart data={netWorthHistory} height={300} />
       </div>
     </div>

@@ -99,6 +99,8 @@
 /* Portfolio chart */
 .portfolio-chart {
   overflow: visible;
+  height: 100%;
+  width: 100%;
 }
 
 .portfolio-chart .line {
