@@ -1,5 +1,5 @@
 
-import { EventDensity, NewsItem } from '../types/game';
+import { EventDensity, NewsItem } from '../../types/game';
 
 export type GameAction =
   | { type: 'START_GAME' }
