@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +8,6 @@ import { GameProvider } from "./contexts/GameContext";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
 import MainMenu from "./components/MainMenu";
-import GameDashboard from "./components/GameDashboard";
 import HowToPlay from "./pages/HowToPlay";
 import Achievements from "./pages/Achievements";
 import NotFound from "./pages/NotFound";
