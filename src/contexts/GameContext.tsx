@@ -36,6 +36,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     state.assets.forEach(asset => {
       updateAssetPriceHistory(asset.id, asset.price, Date.now());
     });
+    
+    const startingNetWorth = calculateNetWorth();
+    updatePortfolioHistory(startingNetWorth, Date.now());
   }, []);
 
   useEffect(() => {
@@ -214,8 +217,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     dispatch({ type: 'START_GAME' });
     
     state.assets.forEach(asset => {
-      updateAssetPriceHistory(asset.id, asset.price);
+      updateAssetPriceHistory(asset.id, asset.price, Date.now());
     });
+    
+    const startingNetWorth = calculateNetWorth();
+    updatePortfolioHistory(startingNetWorth, Date.now());
     
     toast({
       title: "Game Started",

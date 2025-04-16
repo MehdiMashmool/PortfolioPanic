@@ -1,3 +1,4 @@
+
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
@@ -29,7 +30,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const startTime = data[0]?.timestamp || Date.now();
   const formattedData = data.map(entry => ({
     ...entry,
-    timeInSeconds: Math.floor((entry.timestamp - startTime) / 1000)
+    timeInSeconds: entry.timestamp ? Math.max(0, Math.floor((entry.timestamp - startTime) / 1000)) : 0
   }));
 
   // Calculate display domains
@@ -48,7 +49,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   // Find min and max time for domain
   const timeValues = formattedData.map(item => item.timeInSeconds);
   const minTime = 0; // Always start at 0 seconds
-  const maxTime = Math.max(...timeValues);
+  const maxTime = Math.max(...timeValues, 10); // Ensure we have some minimum range
 
   const config = {
     portfolio: {
@@ -91,7 +92,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
-            domain={['dataMin', 'dataMax']}
+            domain={[0, 'dataMax']} 
             allowDecimals={false}
             tickFormatter={(value) => `${value}s`}
             label={{ 
