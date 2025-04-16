@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Area, CartesianGrid } from 'recharts';
 import { cn } from "@/lib/utils";
 import { formatCurrency } from '../utils/marketLogic';
 import { getAssetChartColors } from '../utils/chartUtils';
-import ChartTooltip from './charts/CustomTooltip'; // Renamed import to avoid conflict
+import ChartTooltip from './charts/CustomTooltip';
 
 interface SparklineChartProps {
   data: Array<{ value: number; timestamp?: number | string }>;
@@ -19,9 +18,6 @@ interface SparklineChartProps {
   amplifyVisuals?: boolean;
   assetType?: string;
 }
-
-// Remove the locally defined CustomTooltip component and use the imported one instead
-// with the new name ChartTooltip
 
 const SparklineChart: React.FC<SparklineChartProps> = ({ 
   data, 
@@ -63,24 +59,21 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   const valueRange = maxValue - minValue || maxValue * 0.1;
   const smallVariation = valueRange < 0.05 * maxValue;
   const paddingFactor = amplifyVisuals 
-    ? (smallVariation ? 0.75 : 0.35)
+    ? (smallVariation ? 1.5 : 0.75)
     : (smallVariation ? 0.5 : 0.25);
   
   const padding = valueRange * paddingFactor;
-  const enhancedMin = Math.max(0, minValue - padding * 1.5);
-  const enhancedMax = maxValue + padding * 2;
+  const enhancedMin = Math.max(0, minValue - padding * 2);
+  const enhancedMax = maxValue + padding * 2.5;
 
-  // Convert timestamps to seconds from start, ensuring positive values
   const startTime = Number(data[0]?.timestamp) || Date.now();
   const formattedData = data.map(entry => ({
     ...entry,
     timeInSeconds: Math.max(0, Math.floor((Number(entry.timestamp || startTime) - startTime) / 1000))
   }));
 
-  // Find max time for domain
   const timeValues = formattedData.map(item => item.timeInSeconds);
-  const minTime = 0; // Always start at 0 seconds
-  const maxTime = Math.max(...timeValues, 1); // Ensure we have at least some range
+  const maxTime = Math.max(...timeValues, 1);
 
   return (
     <div className={cn("h-[30px] w-full", className)}>

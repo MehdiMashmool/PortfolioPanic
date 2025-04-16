@@ -96,7 +96,7 @@ const GameDashboard: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </h2>
-              <div className="h-[400px]">
+              <div className="h-[600px]">
                 <NewsPanel onAssetClick={handleAssetClick} />
               </div>
             </CardContent>

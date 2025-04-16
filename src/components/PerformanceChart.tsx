@@ -1,7 +1,7 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
-import { ChartContainer, ChartTooltipContent } from './ui/chart';
+import { ChartContainer } from './ui/chart';
 import CustomTooltip from './charts/CustomTooltip';
 
 interface ChartData {
@@ -26,14 +26,17 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const currentValue = data[data.length - 1]?.value || 0;
   const isPositive = currentValue >= startValue;
   
-  // Format data with consistent time in seconds starting from 0
-  const startTime = data[0]?.timestamp || Date.now();
+  // Convert timestamps to seconds from start, ensuring positive values
+  const startTime = Number(data[0]?.timestamp) || Date.now();
   const formattedData = data.map(entry => ({
     ...entry,
-    timeInSeconds: entry.timestamp ? Math.max(0, Math.floor((entry.timestamp - startTime) / 1000)) : 0
+    timeInSeconds: Math.max(0, Math.floor((Number(entry.timestamp || startTime) - startTime) / 1000))
   }));
 
-  // Calculate display domains
+  // Find max time for domain
+  const timeValues = formattedData.map(item => item.timeInSeconds);
+  const maxTime = Math.max(...timeValues, 1); // Ensure we have at least some range
+
   const values = data.map(item => item.value);
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
@@ -46,42 +49,11 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const enhancedMin = Math.max(0, minValue - padding * 1.5);
   const enhancedMax = maxValue + padding * 2;
 
-  // Find min and max time for domain
-  const timeValues = formattedData.map(item => item.timeInSeconds);
-  const minTime = 0; // Always start at 0 seconds
-  const maxTime = Math.max(...timeValues, 10); // Ensure we have some minimum range
-
-  const config = {
-    portfolio: {
-      label: 'Portfolio Value',
-      color: isPositive ? '#10B981' : '#EF4444',
-    },
-  };
-
-  const calculateYAxisTicks = () => {
-    const range = enhancedMax - enhancedMin;
-    const tickCount = range > 10000 ? 6 : 5;
-    const tickInterval = range / tickCount;
-    
-    let niceInterval = Math.pow(10, Math.floor(Math.log10(tickInterval)));
-    if (tickInterval / niceInterval >= 5) niceInterval *= 5;
-    else if (tickInterval / niceInterval >= 2) niceInterval *= 2;
-    
-    const ticks = [];
-    let tick = Math.ceil(enhancedMin / niceInterval) * niceInterval;
-    while (tick <= enhancedMax) {
-      ticks.push(tick);
-      tick += niceInterval;
-    }
-    
-    return ticks;
-  };
-  
-  const yAxisTicks = calculateYAxisTicks();
+  const yAxisTicks = [enhancedMin, (enhancedMin + enhancedMax) / 2, enhancedMax];
   
   return (
     <div className="h-full w-full portfolio-chart" style={{ height }}>
-      <ChartContainer className="h-full" config={config}>
+      <ChartContainer className="h-full">
         <LineChart
           data={formattedData}
           margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
@@ -89,12 +61,13 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
           <CartesianGrid vertical={false} stroke="#2A303C" strokeDasharray="3 3" className="grid" />
           <XAxis 
             dataKey="timeInSeconds"
+            type="number"
+            domain={[0, maxTime]}
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
-            domain={[0, 'dataMax']} 
-            allowDecimals={false}
             tickFormatter={(value) => `${value}s`}
+            allowDecimals={false}
             label={{ 
               value: 'Time (seconds)', 
               position: 'insideBottomRight',
