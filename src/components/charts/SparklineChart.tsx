@@ -38,7 +38,8 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
     if (!data || data.length === 0) return [];
 
     // Ensure timestamps are consistent
-    const baseTimestamp = data[0].timestamp || Date.now();
+    const baseTimestamp = data[0].timestamp ? Number(data[0].timestamp) : Date.now();
+    
     return data.map((entry, index) => {
       const timestamp = entry.timestamp 
         ? Number(entry.timestamp) 
