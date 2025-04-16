@@ -1,7 +1,9 @@
 
 import React from 'react';
 import { useGame } from '../contexts/GameContext';
+import { Button } from './ui/button';
 import AssetPanel from './AssetPanel';
+import { ChevronRight } from 'lucide-react';
 
 interface AssetListProps {
   onAssetClick: (id: string, name: string) => void;
@@ -19,6 +21,10 @@ const AssetList = ({ onAssetClick }: AssetListProps) => {
             ({state.assets.length})
           </span>
         </h2>
+        <Button variant="ghost" className="text-sm text-gray-400 group">
+          See All
+          <ChevronRight size={16} className="ml-1 group-hover:translate-x-0.5 transition-transform" />
+        </Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {state.assets.map(asset => (
