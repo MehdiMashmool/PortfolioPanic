@@ -1,4 +1,3 @@
-
 export type Asset = {
   id: string;
   name: string;
@@ -38,6 +37,10 @@ export type NetWorthHistoryEntry = {
   timestamp?: number;
 };
 
+export type MissionRewards = {
+  [key: string]: number | boolean;
+};
+
 export type GameState = {
   assets: Asset[];
   cash: number;
@@ -51,4 +54,10 @@ export type GameState = {
   netWorthHistory: NetWorthHistoryEntry[];
   marketHealth: number;
   lastPriceUpdate?: number;
+  missions: {
+    [key: number]: any[];
+  };
+  activeMissions: any[];
+  completedMissions: any[];
+  missionRewards: MissionRewards;
 };

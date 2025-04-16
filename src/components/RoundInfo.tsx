@@ -4,6 +4,7 @@ import { Progress } from './ui/progress';
 import { useGame } from '../contexts/GameContext';
 import { AlertTriangle, ChevronRight, Flag, Clock } from 'lucide-react';
 import { Button } from './ui/button';
+import RoundMissions from './RoundMissions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +19,7 @@ import {
 
 const RoundInfo = () => {
   const { state, nextRound, endGame } = useGame();
-  const { round, timeRemaining, isGameOver } = state;
+  const { round, timeRemaining, isGameOver, activeMissions } = state;
   
   // Calculate progress percentage
   const progressPercentage = (timeRemaining / 60) * 100;
@@ -60,6 +61,12 @@ const RoundInfo = () => {
           Time running out! Make your final trades for this round.
         </div>
       )}
+
+      {/* Add Round Missions */}
+      <div className="mt-4">
+        <RoundMissions missions={activeMissions} />
+      </div>
+      
       {isRoundComplete && (
         <div className="mt-4 flex gap-2 justify-center">
           <Button 

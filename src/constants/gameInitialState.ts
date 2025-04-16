@@ -1,5 +1,6 @@
 
 import { Asset, GameState } from '../types/game';
+import { generateGameMissions } from '../utils/missionGenerator';
 
 export const initialAssets: Asset[] = [
   {
@@ -44,6 +45,9 @@ export const initialAssets: Asset[] = [
   }
 ];
 
+// Generate the initial set of missions for all rounds
+const gameMissions = generateGameMissions();
+
 export const initialGameState: GameState = {
   assets: initialAssets,
   cash: 10000,
@@ -56,4 +60,8 @@ export const initialGameState: GameState = {
   activeNews: [],
   netWorthHistory: [{ round: 0, value: 10000 }],
   marketHealth: 100,
+  missions: gameMissions,
+  activeMissions: gameMissions[1] || [], // Missions for round 1
+  completedMissions: [],
+  missionRewards: {}
 };

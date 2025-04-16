@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { generateMarketNews } from '../utils/newsGenerator';
 import { GameState, TradeAction } from '../types/game';
@@ -9,6 +8,7 @@ import { AchievementType } from '../components/AchievementBadge';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { updateAssetPriceHistory, updatePortfolioHistory } from '../utils/chartUtils';
+import { Mission } from '../types/missions';
 
 type GameContextType = {
   state: GameState;
@@ -18,6 +18,9 @@ type GameContextType = {
   endGame: () => void;
   nextRound: () => void;
   unlockAchievement: (achievement: AchievementType) => void;
+  updateMissionProgress: (missionId?: string) => void;
+  completeMission: (missionId: string) => void;
+  failMission: (missionId: string) => void;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -34,7 +37,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const PRICE_UPDATE_INTERVAL = 1000; // 1 second update interval
 
-  // Initialize price history data
   useEffect(() => {
     const currentTime = Date.now();
     state.assets.forEach(asset => {
@@ -45,7 +47,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updatePortfolioHistory(startingNetWorth, currentTime);
   }, []);
 
-  // Main game loop
   useEffect(() => {
     let frameId: number;
 
@@ -59,11 +60,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           const now = Date.now();
           
-          // Update asset prices
           if (now - lastPriceUpdate >= PRICE_UPDATE_INTERVAL) {
             dispatch({ type: 'UPDATE_PRICES' });
             
-            // Record price history for each asset with the current timestamp
             state.assets.forEach(asset => {
               updateAssetPriceHistory(asset.id, asset.price, now);
             });
@@ -71,13 +70,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLastPriceUpdate(now);
           }
           
-          // Generate news periodically
-          if (now - lastNewsUpdate >= 5000) { // 5 seconds
+          if (now - lastNewsUpdate >= 5000) {
             let newsItem;
             let attempts = 0;
             const maxAttempts = 5;
 
-            // Try to find news that hasn't been shown recently
             do {
               newsItem = generateMarketNews(state.assets, state.round);
               attempts++;
@@ -86,7 +83,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (!recentNewsIds.has(newsItem.id) || attempts >= maxAttempts) {
               dispatch({ type: 'ADD_NEWS', payload: newsItem });
               
-              // Track recent news to avoid repetition
               const newRecentNewsIds = new Set(recentNewsIds);
               newRecentNewsIds.add(newsItem.id);
               if (newRecentNewsIds.size > 20) {
@@ -95,7 +91,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
               setRecentNewsIds(newRecentNewsIds);
 
-              // Expire news after 15 seconds
               setTimeout(() => {
                 dispatch({ type: 'EXPIRE_NEWS', payload: newsItem.id });
                 setRecentNewsIds(prev => {
@@ -109,14 +104,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
 
-          // Random market health fluctuations
-          if (Math.random() < 0.02) { // 2% chance per frame
+          if (Math.random() < 0.02) {
             const healthChange = (Math.random() * 6) - 3;
             const newHealth = Math.max(0, Math.min(100, state.marketHealth + healthChange));
             dispatch({ type: 'UPDATE_MARKET_HEALTH', payload: newHealth });
           }
 
-          // Update portfolio net worth history
           if (now - lastNetWorthUpdate >= PRICE_UPDATE_INTERVAL) {
             const netWorth = calculateNetWorth();
             dispatch({ type: 'UPDATE_NET_WORTH', payload: { timestamp: now } });
@@ -135,7 +128,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => cancelAnimationFrame(frameId);
   }, [state.isGameOver, lastTickTime, lastPriceUpdate, lastNetWorthUpdate, lastNewsUpdate, state.assets]);
 
-  // Save high score when game ends
   useEffect(() => {
     const saveHighScore = async () => {
       if (state.isGameOver) {
@@ -160,7 +152,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     saveHighScore();
   }, [state.isGameOver]);
 
-  // Check for achievements
   useEffect(() => {
     if (Object.keys(state.holdings).length > 0 && !achievementsUnlocked.has('first-trade')) {
       unlockAchievement('first-trade');
@@ -185,16 +176,33 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (investedTypes.size >= assetTypes.size && !achievementsUnlocked.has('diversified')) {
       unlockAchievement('diversified');
     }
-
   }, [state.holdings, state.netWorthHistory]);
 
-  // Reset on component mount
   useEffect(() => {
-    setLastTickTime(null);
-    setLastNewsUpdate(0);
-  }, []);
+    const checkInterval = setInterval(() => {
+      if (!state.isPaused && !state.isGameOver) {
+        dispatch({ type: 'UPDATE_MISSION_PROGRESS' });
+      }
+    }, 1000);
+    
+    return () => clearInterval(checkInterval);
+  }, [state.isPaused, state.isGameOver]);
 
-  // Calculate total portfolio value
+  useEffect(() => {
+    state.activeMissions.forEach(mission => {
+      if (mission.status === 'completed') {
+        toast({
+          title: "Mission Completed!",
+          description: `${mission.title}: ${mission.reward}`,
+          duration: 5000,
+          className: "bg-green-900 border-green-600"
+        });
+        
+        dispatch({ type: 'COMPLETE_MISSION', payload: { missionId: mission.id } });
+      }
+    });
+  }, [state.activeMissions]);
+
   const calculateNetWorth = () => {
     let netWorth = state.cash;
     
@@ -212,7 +220,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return netWorth;
   };
 
-  // Execute trading actions
   const executeTrade = (assetId: string, action: TradeAction, amount: number) => {
     if (state.isGameOver) return;
     
@@ -225,7 +232,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  // Unlock an achievement
   const unlockAchievement = (achievement: AchievementType) => {
     if (!achievementsUnlocked.has(achievement)) {
       setAchievementsUnlocked(prev => {
@@ -238,18 +244,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Start a new game
   const startGame = () => {
     const now = Date.now();
     setGameStartTime(now);
     dispatch({ type: 'START_GAME' });
     
-    // Initialize price history for each asset
     state.assets.forEach(asset => {
       updateAssetPriceHistory(asset.id, asset.price, now);
     });
     
-    // Initialize portfolio history
     const startingNetWorth = calculateNetWorth();
     updatePortfolioHistory(startingNetWorth, now);
     
@@ -260,7 +263,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  // End current game
   const endGame = () => {
     dispatch({ type: 'END_GAME' });
     toast({
@@ -270,7 +272,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  // Advance to next round
   const nextRound = () => {
     if (state.round >= 10) {
       endGame();
@@ -284,6 +285,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateMissionProgress = (missionId?: string) => {
+    dispatch({ type: 'UPDATE_MISSION_PROGRESS', payload: { missionId } });
+  };
+  
+  const completeMission = (missionId: string) => {
+    dispatch({ type: 'COMPLETE_MISSION', payload: { missionId } });
+  };
+  
+  const failMission = (missionId: string) => {
+    dispatch({ type: 'FAIL_MISSION', payload: { missionId } });
+  };
+
   const value = {
     state,
     calculateNetWorth,
@@ -291,7 +304,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     startGame,
     endGame,
     nextRound,
-    unlockAchievement
+    unlockAchievement,
+    updateMissionProgress,
+    completeMission,
+    failMission
   };
 
   return (

@@ -1,6 +1,7 @@
-
 import { GameState, TradeAction } from '../types/game';
 import { calculateNewPrices } from '../utils/marketLogic';
+import { Mission } from '../types/missions';
+import { checkMissionProgress } from '../utils/missionGenerator';
 
 type Action =
   | { type: 'START_GAME' }
@@ -12,7 +13,10 @@ type Action =
   | { type: 'EXPIRE_NEWS'; payload: string }
   | { type: 'EXECUTE_TRADE'; payload: { assetId: string; action: TradeAction; amount: number; price: number; timestamp?: number } }
   | { type: 'UPDATE_MARKET_HEALTH'; payload: number }
-  | { type: 'UPDATE_NET_WORTH'; payload?: { timestamp?: number } };
+  | { type: 'UPDATE_NET_WORTH'; payload?: { timestamp?: number } }
+  | { type: 'UPDATE_MISSION_PROGRESS'; payload?: { missionId?: string } }
+  | { type: 'COMPLETE_MISSION'; payload: { missionId: string } }
+  | { type: 'FAIL_MISSION'; payload: { missionId: string } };
 
 export const gameReducer = (state: GameState, action: Action): GameState => {
   switch (action.type) {
@@ -30,6 +34,9 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         news: [],
         activeNews: [],
         lastPriceUpdate: now,
+        activeMissions: state.missions[1] || [],
+        completedMissions: [],
+        missionRewards: {}
       };
     }
       
@@ -41,13 +48,25 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
       if (state.round >= 10) {
         return { ...state, isPaused: true, isGameOver: true };
       }
+      
+      const nextRound = state.round + 1;
+      // Check for any incomplete missions from the current round
+      const failedMissions = state.activeMissions
+        .filter(m => m.status === 'active')
+        .map(m => ({ ...m, status: 'failed' as const }));
+
+      // Get missions for the next round
+      const nextRoundMissions = state.missions[nextRound] || [];
+      
       return {
         ...state,
-        round: state.round + 1,
+        round: nextRound,
         timeRemaining: 60,
         isPaused: false,
         activeNews: [],
         lastPriceUpdate: now,
+        activeMissions: nextRoundMissions,
+        completedMissions: [...state.completedMissions, ...state.activeMissions.filter(m => m.status === 'completed')],
       };
     }
 
@@ -228,11 +247,21 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         });
       }
 
+      // After trade is executed, check mission progress
+      const updatedActiveMissions = state.activeMissions.map(mission => 
+        checkMissionProgress(mission, {
+          ...state,
+          cash: newCash,
+          holdings: newHoldings
+        })
+      );
+
       return { 
         ...state, 
         cash: newCash, 
         holdings: newHoldings,
-        netWorthHistory: updatedNetWorthHistory
+        netWorthHistory: updatedNetWorthHistory,
+        activeMissions: updatedActiveMissions
       };
     }
 
@@ -262,6 +291,60 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
           value: netWorth,
           timestamp: timestamp
         }]
+      };
+    }
+
+    case 'UPDATE_MISSION_PROGRESS': {
+      // Update progress of all active missions
+      const updatedActiveMissions = state.activeMissions.map(mission => 
+        checkMissionProgress(mission, state)
+      );
+      
+      return {
+        ...state,
+        activeMissions: updatedActiveMissions
+      };
+    }
+    
+    case 'COMPLETE_MISSION': {
+      const { missionId } = action.payload;
+      const updatedActiveMissions = state.activeMissions.map(mission => 
+        mission.id === missionId ? { ...mission, status: 'completed' as const } : mission
+      );
+      
+      // Apply mission rewards
+      const completedMission = state.activeMissions.find(m => m.id === missionId);
+      let updatedMissionRewards = { ...state.missionRewards };
+      let updatedCash = state.cash;
+      
+      if (completedMission && completedMission.reward && completedMission.rewardValue) {
+        if (completedMission.reward.includes('Cash Bonus')) {
+          // Apply cash bonus
+          const bonus = state.cash * completedMission.rewardValue;
+          updatedCash = state.cash + bonus;
+        }
+        
+        // Store the reward in mission rewards
+        updatedMissionRewards[completedMission.type] = completedMission.rewardValue;
+      }
+      
+      return {
+        ...state,
+        activeMissions: updatedActiveMissions,
+        missionRewards: updatedMissionRewards,
+        cash: updatedCash
+      };
+    }
+    
+    case 'FAIL_MISSION': {
+      const { missionId } = action.payload;
+      const updatedActiveMissions = state.activeMissions.map(mission => 
+        mission.id === missionId ? { ...mission, status: 'failed' as const } : mission
+      );
+      
+      return {
+        ...state,
+        activeMissions: updatedActiveMissions
       };
     }
 
