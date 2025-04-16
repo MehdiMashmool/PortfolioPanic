@@ -30,8 +30,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [achievementsUnlocked, setAchievementsUnlocked] = useState<Set<AchievementType>>(new Set());
   const [recentNewsIds, setRecentNewsIds] = useState<Set<string>>(new Set());
 
-  const PRICE_UPDATE_INTERVAL = 2000;
-  const NEWS_UPDATE_INTERVAL = 10000;
+  const PRICE_UPDATE_INTERVAL = 3000;
 
   useEffect(() => {
     state.assets.forEach(asset => {
@@ -62,7 +61,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLastPriceUpdate(now);
           }
           
-          if (now - lastNewsUpdate >= NEWS_UPDATE_INTERVAL) {
+          if (now - lastNewsUpdate >= 5000) {
             let newsItem;
             let attempts = 0;
             const maxAttempts = 5;
