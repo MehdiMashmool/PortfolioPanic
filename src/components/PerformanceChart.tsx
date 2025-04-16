@@ -26,12 +26,19 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const currentValue = data[data.length - 1]?.value || 0;
   const isPositive = currentValue >= startValue;
   
-  // Format data with consistent time in seconds starting from 0
+  // Generate proper time values that increase correctly
   const startTime = data[0]?.timestamp || Date.now();
-  const formattedData = data.map(entry => ({
-    ...entry,
-    timeInSeconds: entry.timestamp ? Math.max(0, Math.floor((entry.timestamp - startTime) / 1000)) : 0
-  }));
+  const formattedData = data.map((entry, index) => {
+    // Ensure time values are always increasing by calculating based on index
+    const timeInSeconds = entry.timestamp ? 
+      Math.max(0, Math.floor((entry.timestamp - startTime) / 1000)) : 
+      index; // Fallback to index if timestamp is missing
+      
+    return {
+      ...entry,
+      timeInSeconds
+    };
+  });
 
   // Calculate display domains
   const values = data.map(item => item.value);
@@ -46,11 +53,11 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const enhancedMin = Math.max(0, minValue - padding * 1.5);
   const enhancedMax = maxValue + padding * 2;
 
-  // Find min and max time for domain
+  // Get time domain from the formatted data
   const timeValues = formattedData.map(item => item.timeInSeconds);
-  const minTime = 0; // Always start at 0 seconds
   const maxTime = Math.max(...timeValues, 10); // Ensure we have some minimum range
 
+  // Required chart config for ChartContainer
   const config = {
     portfolio: {
       label: 'Portfolio Value',

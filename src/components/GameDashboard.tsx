@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
@@ -81,6 +82,7 @@ const GameDashboard: React.FC = () => {
         </div>
 
         <div className="space-y-6">
+          {/* Enlarged Market News card with more height */}
           <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl">
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent flex items-center justify-between">
@@ -96,7 +98,7 @@ const GameDashboard: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </h2>
-              <div className="h-[400px]">
+              <div className="h-[500px]">
                 <NewsPanel onAssetClick={handleAssetClick} />
               </div>
             </CardContent>
