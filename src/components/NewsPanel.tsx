@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../contexts/GameContext';
 import { getNewsSentimentClass } from '../utils/newsGenerator';
@@ -12,7 +11,7 @@ import {
   Info,
   Bell,
   Volume2,
-  Flash
+  Zap
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -81,7 +80,7 @@ const NewsPanel: React.FC<NewsPanelProps> = ({ onAssetClick }) => {
     if (news.chainId && news.chainSequence && news.chainSequence > 1) {
       return <Bell size={16} className="text-amber-400 mr-1" />;
     } else if (news.magnitude >= 0.8) {
-      return <Flash size={16} className="text-red-400 mr-1" />;
+      return <Zap size={16} className="text-red-400 mr-1" />;
     } else if (news.delayedEffect) {
       return <Volume2 size={16} className="text-blue-400 mr-1" />;
     }

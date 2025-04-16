@@ -1,5 +1,5 @@
 
-import { GameState, TradeAction, EventDensity } from '../types/game';
+import { GameState, TradeAction, EventDensity, NewsItem } from '../types/game';
 import { calculateNewPrices } from '../utils/marketLogic';
 import { Mission } from '../types/missions';
 import { checkMissionProgress } from '../utils/missionGenerator';
@@ -21,7 +21,7 @@ type Action =
   | { type: 'FAIL_MISSION'; payload: { missionId: string } }
   | { type: 'UPDATE_EVENT_DENSITY'; payload: EventDensity }
   | { type: 'SET_LAST_NEWS_UPDATE'; payload: number }
-  | { type: 'SCHEDULE_NEWS'; payload: number[] }
+  | { type: 'SCHEDULE_NEWS'; payload: NewsItem[] }
   | { type: 'TRIGGER_EVENT'; payload: number };
 
 export const gameReducer = (state: GameState, action: Action): GameState => {
