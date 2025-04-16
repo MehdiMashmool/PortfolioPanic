@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Area, CartesianGrid } from 'recharts';
 import { cn } from "@/lib/utils";
 import { formatCurrency } from '../utils/marketLogic';
 import { getAssetChartColors } from '../utils/chartUtils';
-import CustomTooltip from './charts/CustomTooltip';
+import ChartTooltip from './charts/CustomTooltip'; // Renamed import to avoid conflict
 
 interface SparklineChartProps {
   data: Array<{ value: number; timestamp?: number | string }>;
@@ -19,23 +20,8 @@ interface SparklineChartProps {
   assetType?: string;
 }
 
-const CustomTooltip = ({ active, payload, label, valuePrefix }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="chart-tooltip bg-panel border border-highlight p-2 rounded-md shadow-lg">
-        <p className="text-sm font-semibold tooltip-value">
-          {valuePrefix || ''}{formatCurrency(payload[0].value)}
-        </p>
-        {payload[0].payload.timestamp && (
-          <p className="text-xs text-gray-400 tooltip-time">
-            {new Date(payload[0].payload.timestamp).toLocaleTimeString()}
-          </p>
-        )}
-      </div>
-    );
-  }
-  return null;
-};
+// Remove the locally defined CustomTooltip component and use the imported one instead
+// with the new name ChartTooltip
 
 const SparklineChart: React.FC<SparklineChartProps> = ({ 
   data, 
@@ -84,12 +70,14 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   const enhancedMin = Math.max(0, minValue - padding * 1.5);
   const enhancedMax = maxValue + padding * 2;
 
+  // Convert timestamps to seconds from start
   const startTime = Number(data[0]?.timestamp) || Date.now();
   const formattedData = data.map(entry => ({
     ...entry,
     timeInSeconds: Math.floor((Number(entry.timestamp) - startTime) / 1000)
   }));
 
+  // Find min and max time for domain
   const timeValues = formattedData.map(item => item.timeInSeconds);
   const minTime = Math.min(...timeValues);
   const maxTime = Math.max(...timeValues);
@@ -117,22 +105,30 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
           />
           <YAxis 
             domain={[enhancedMin, enhancedMax]}
-            hide={!showAxes}
+            hide={true}
           />
           {showTooltip && (
             <Tooltip 
-              content={<CustomTooltip valuePrefix={valuePrefix} />}
+              content={<ChartTooltip valuePrefix={valuePrefix} />}
               cursor={{ stroke: '#4B5563', strokeWidth: 1 }}
             />
           )}
           {areaFill && (
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="none"
-              fill={areaColor}
-              fillOpacity={0.2}
-            />
+            <>
+              <defs>
+                <linearGradient id={`sparklineGradient-${assetType}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={lineColor} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="linear"
+                dataKey="value"
+                stroke="none"
+                fill={`url(#sparklineGradient-${assetType})`}
+                fillOpacity={0.2}
+              />
+            </>
           )}
           <Line
             type="linear"
