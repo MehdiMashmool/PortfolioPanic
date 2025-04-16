@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, Area } from 'recharts';
 import { cn } from "@/lib/utils";
@@ -23,7 +22,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   data, 
   color = "#10B981", 
   className,
-  height = 30,
+  height = 40,
   showTooltip = false,
   valuePrefix = '',
   areaFill = false,
@@ -32,7 +31,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   assetType
 }) => {
   if (!data || data.length === 0) {
-    return <div className={cn("h-[30px] w-full", className)} />;
+    return <div className={cn("h-[40px] w-full", className)} />;
   }
 
   const startValue = referenceValue !== undefined ? referenceValue : data[0].value;
@@ -50,18 +49,17 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   }
 
   const { enhancedMin, enhancedMax } = calculateChartDomains(data, amplifyVisuals);
-
-  // Convert any string timestamps to numbers first
+  
   const timeMin = typeof data[0]?.timestamp === 'number' 
     ? data[0].timestamp as number 
-    : Date.now() - 60000; // Default to 1 minute ago
+    : Date.now() - 60000;
     
   const timeMax = typeof data[data.length - 1]?.timestamp === 'number' 
     ? data[data.length - 1].timestamp as number 
     : Date.now();
   
   return (
-    <div className={cn("h-[30px] w-full", className)}>
+    <div className={cn("h-[40px] w-full", className)}>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart 
           data={data} 

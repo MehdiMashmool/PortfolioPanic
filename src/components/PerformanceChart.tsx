@@ -1,4 +1,3 @@
-
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
@@ -17,9 +16,14 @@ interface PerformanceChartProps {
 
 const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 }) => {
   if (!data || data.length < 2) {
-    return <div className="h-full w-full bg-panel-light/20 rounded flex items-center justify-center" style={{ height }}>
-      <span className="text-sm text-gray-400">Waiting for performance data...</span>
-    </div>;
+    return (
+      <div 
+        className="h-full w-full bg-panel-light/20 rounded flex items-center justify-center" 
+        style={{ height: height + 40 }}
+      >
+        <span className="text-sm text-gray-400">Waiting for performance data...</span>
+      </div>
+    );
   }
 
   const startValue = data[0]?.value || 0;
@@ -29,7 +33,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const formattedData = data.map(entry => ({
     ...entry,
     formattedValue: formatCurrency(entry.value).replace('$', ''),
-    timeInSeconds: Math.floor((entry.timestamp || Date.now()) / 1000)
+    timeInSeconds: Math.floor((entry.timestamp || Date.now() - data[0].timestamp!) / 1000)
   }));
 
   const values = data.map(item => item.value);
@@ -73,7 +77,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const yAxisTicks = calculateYAxisTicks();
   
   return (
-    <div className="h-full w-full portfolio-chart" style={{ height }}>
+    <div className="h-full w-full portfolio-chart" style={{ height: height + 40 }}>
       <ChartContainer className="h-full" config={config}>
         <LineChart
           data={formattedData}
