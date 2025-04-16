@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer } from './ui/chart';
@@ -83,61 +84,62 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
                 stopColor={isPositive ? '#10B981' : '#EF4444'} 
                 stopOpacity={0} 
               />
-            </defs>
+            </linearGradient>
+          </defs>
+        
+          <CartesianGrid vertical={false} stroke="#2A303C" strokeDasharray="3 3" />
           
-            <CartesianGrid vertical={false} stroke="#2A303C" strokeDasharray="3 3" />
-            
-            <XAxis 
-              dataKey="timeInSeconds"
-              type="number"
-              domain={[minTime, maxTime]}
-              ticks={customTicks}
-              tickFormatter={value => `${Math.round(value)}s`}
-              tick={{ fill: '#8E9196' }}
-              tickLine={{ stroke: '#8E9196' }}
-              axisLine={{ stroke: '#2A303C' }}
-            />
-            
-            <YAxis 
-              domain={[minDomain, maxDomain]}
-              tickFormatter={(value) => formatCurrency(value).replace('$', '')}
-              tick={{ fill: '#8E9196' }}
-              tickLine={{ stroke: '#8E9196' }}
-              axisLine={{ stroke: '#2A303C' }}
-              width={60}
-            />
-            
-            <ReferenceLine 
-              y={startValue} 
-              stroke="rgba(255,255,255,0.3)" 
-              strokeDasharray="3 3" 
-              label={{ 
-                value: 'Start', 
-                position: 'insideLeft',
-                fill: 'rgba(255,255,255,0.5)',
-                fontSize: 10
-              }}
-            />
-            
-            <Tooltip content={<CustomTooltip />} />
-            
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke={isPositive ? '#10B981' : '#EF4444'}
-              strokeWidth={2.5}
-              dot={false}
-              activeDot={{ 
-                r: 5, 
-                stroke: isPositive ? '#10B981' : '#EF4444', 
-                strokeWidth: 2, 
-                fill: "#1A1F2C" 
-              }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    );
+          <XAxis 
+            dataKey="timeInSeconds"
+            type="number"
+            domain={[minTime, maxTime]}
+            ticks={customTicks}
+            tickFormatter={value => `${Math.round(value)}s`}
+            tick={{ fill: '#8E9196' }}
+            tickLine={{ stroke: '#8E9196' }}
+            axisLine={{ stroke: '#2A303C' }}
+          />
+          
+          <YAxis 
+            domain={[minDomain, maxDomain]}
+            tickFormatter={(value) => formatCurrency(value).replace('$', '')}
+            tick={{ fill: '#8E9196' }}
+            tickLine={{ stroke: '#8E9196' }}
+            axisLine={{ stroke: '#2A303C' }}
+            width={60}
+          />
+          
+          <ReferenceLine 
+            y={startValue} 
+            stroke="rgba(255,255,255,0.3)" 
+            strokeDasharray="3 3" 
+            label={{ 
+              value: 'Start', 
+              position: 'insideLeft',
+              fill: 'rgba(255,255,255,0.5)',
+              fontSize: 10
+            }}
+          />
+          
+          <Tooltip content={<CustomTooltip />} />
+          
+          <Line
+            type="monotone"
+            dataKey="value"
+            stroke={isPositive ? '#10B981' : '#EF4444'}
+            strokeWidth={2.5}
+            dot={false}
+            activeDot={{ 
+              r: 5, 
+              stroke: isPositive ? '#10B981' : '#EF4444', 
+              strokeWidth: 2, 
+              fill: "#1A1F2C" 
+            }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
 };
 
 export default PerformanceChart;
