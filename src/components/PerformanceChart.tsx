@@ -56,14 +56,14 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const minDomain = Math.max(0, minValue - valuePadding);
   const maxDomain = maxValue + valuePadding;
 
-  // Generate meaningful tick values
-  const generateTicks = () => {
+  // Generate meaningful tick values for time axis
+  const generateTimeTicks = () => {
     const tickCount = 5;
     const interval = Math.ceil((maxTime - minTime) / (tickCount - 1));
     return Array.from({ length: tickCount }, (_, i) => minTime + i * interval);
   };
 
-  const customTicks = generateTicks();
+  const timeTicks = generateTimeTicks();
 
   return (
     <div className="h-full w-full portfolio-chart">
@@ -93,8 +93,8 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             dataKey="timeInSeconds"
             type="number"
             domain={[minTime, maxTime]}
-            ticks={customTicks}
-            tickFormatter={value => `${Math.round(value)}s`}
+            ticks={timeTicks}
+            tickFormatter={value => `-${Math.abs(maxTime - value)}s`}
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
@@ -114,8 +114,8 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             stroke="rgba(255,255,255,0.3)" 
             strokeDasharray="3 3" 
             label={{ 
-              value: 'Start', 
-              position: 'insideLeft',
+              value: formatCurrency(startValue), 
+              position: 'left',
               fill: 'rgba(255,255,255,0.5)',
               fontSize: 10
             }}
@@ -135,7 +135,13 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
               strokeWidth: 2, 
               fill: "#1A1F2C" 
             }}
+          />
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke="none"
             fill="url(#portfolioGradient)"
+            fillOpacity={0.2}
           />
         </LineChart>
       </ResponsiveContainer>

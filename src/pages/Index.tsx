@@ -9,7 +9,7 @@ const Index = () => {
   
   // Show the appropriate screen based on game state
   return (
-    <div className="h-screen w-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-screen w-screen flex flex-col bg-[#070c15] overflow-hidden">
       {!state.round || (state.isPaused && state.round === 1 && state.timeRemaining === 60) ? (
         <StartScreen />
       ) : (

@@ -20,7 +20,7 @@ const PerformanceSection = ({
   isDiversified
 }: PerformanceSectionProps) => {
   return (
-    <div className="mt-4 p-4 bg-panel/30 rounded-lg border border-panel-light/30 flex flex-col h-[400px]">
+    <div className="mt-4 p-4 bg-[#0c1322]/90 rounded-lg border border-[#1a2133]/80 flex flex-col h-[400px]">
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center">
           <TrendingUp size={16} className="mr-2 text-gray-400" />
