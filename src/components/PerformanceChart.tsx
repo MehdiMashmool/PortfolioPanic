@@ -1,5 +1,5 @@
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer } from './ui/chart';
 import CustomTooltip from './charts/CustomTooltip';
@@ -51,9 +51,17 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
 
   const yAxisTicks = [enhancedMin, (enhancedMin + enhancedMax) / 2, enhancedMax];
   
+  // Define chart configuration object
+  const chartConfig = {
+    portfolio: {
+      label: 'Portfolio Value',
+      color: isPositive ? '#10B981' : '#EF4444'
+    },
+  };
+  
   return (
     <div className="h-full w-full portfolio-chart" style={{ height }}>
-      <ChartContainer className="h-full">
+      <ChartContainer className="h-full" config={chartConfig}>
         <LineChart
           data={formattedData}
           margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
