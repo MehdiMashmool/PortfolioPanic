@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from 'recharts';
 import { cn } from "@/lib/utils";
+import { formatCurrency } from '../../utils/marketLogic';
 import CustomTooltip from './CustomTooltip';
 import { calculateChartDomains } from './sparklineUtils';
 import { getAssetChartColors } from '../../utils/chartUtils';
@@ -47,34 +48,38 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
     const colors = getAssetChartColors(assetType, prices);
     lineColor = colors.line;
     areaColor = colors.area;
+  } else {
+    lineColor = isPositive ? '#10B981' : '#EF4444';
+    areaColor = isPositive ? `${lineColor}20` : `${lineColor}20`;
   }
 
   const { enhancedMin, enhancedMax } = calculateChartDomains(data, amplifyVisuals);
 
-  // Convert any string timestamps to numbers first
-  const timeMin = typeof data[0]?.timestamp === 'number' 
-    ? data[0].timestamp as number 
-    : Date.now() - 60000; // Default to 1 minute ago
-    
-  const timeMax = typeof data[data.length - 1]?.timestamp === 'number' 
-    ? data[data.length - 1].timestamp as number 
-    : Date.now();
-  
+  // Convert timestamps to seconds from start
+  const startTime = Number(data[0]?.timestamp) || Date.now();
+  const formattedData = data.map(entry => ({
+    ...entry,
+    timeInSeconds: Math.floor((Number(entry.timestamp) - startTime) / 1000)
+  }));
+
   return (
     <div className={cn("h-[30px] w-full", className)}>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart 
-          data={data} 
-          margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+          data={formattedData}
+          margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
         >
+          <CartesianGrid vertical={false} stroke="#2A303C" strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="timeInSeconds"
+            type="number"
+            domain={[0, 'auto']}
+            tick={{ fill: '#8E9196' }}
+            tickLine={{ stroke: '#8E9196' }}
+            axisLine={{ stroke: '#2A303C' }}
+          />
           <YAxis 
             domain={[enhancedMin, enhancedMax]}
-            hide={true}
-          />
-          <XAxis 
-            dataKey="timestamp"
-            type="number"
-            domain={[timeMin, timeMax]}
             hide={true}
           />
           {showTooltip && (

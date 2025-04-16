@@ -4,9 +4,20 @@ import { Progress } from './ui/progress';
 import { useGame } from '../contexts/GameContext';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from './ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const RoundInfo = () => {
-  const { state, nextRound } = useGame();
+  const { state, nextRound, endGame } = useGame();
   const { round, timeRemaining, isGameOver } = state;
   
   // Calculate progress percentage
@@ -48,13 +59,34 @@ const RoundInfo = () => {
         </div>
       )}
       {isRoundComplete && (
-        <div className="mt-4 text-center">
+        <div className="mt-4 flex gap-2 justify-center">
           <Button 
             onClick={nextRound}
             className="bg-blue-600 hover:bg-blue-700 text-white animate-pulse"
           >
             Go to Next Round
           </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="bg-red-900/50 hover:bg-red-900/80">
+                End Game
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-[#1A1F2C] border border-white/10">
+              <AlertDialogHeader>
+                <AlertDialogTitle>End Game Early?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to end the game now? Your final score will be calculated based on your current portfolio value.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="border-white/10">Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={endGame} className="bg-red-600 hover:bg-red-700">
+                  End Game
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
     </CardHeader>

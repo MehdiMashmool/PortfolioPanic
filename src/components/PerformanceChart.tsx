@@ -1,4 +1,3 @@
-
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
@@ -26,10 +25,10 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const currentValue = data[data.length - 1]?.value || 0;
   const isPositive = currentValue >= startValue;
   
+  const startTime = data[0]?.timestamp || Date.now();
   const formattedData = data.map(entry => ({
     ...entry,
-    formattedValue: formatCurrency(entry.value).replace('$', ''),
-    timeInSeconds: Math.floor((entry.timestamp || Date.now()) / 1000)
+    timeInSeconds: Math.floor((entry.timestamp - startTime) / 1000)
   }));
 
   const values = data.map(item => item.value);
@@ -85,6 +84,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
+            domain={[0, 'auto']}
             label={{ 
               value: 'Time (seconds)', 
               position: 'insideBottomRight',
@@ -104,21 +104,12 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
           />
           <Tooltip content={<CustomTooltip />} />
           
-          {isPositive ? (
-            <defs>
-              <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-          ) : (
-            <defs>
-              <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-          )}
+          <defs>
+            <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={isPositive ? '#10B981' : '#EF4444'} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={isPositive ? '#10B981' : '#EF4444'} stopOpacity={0} />
+            </linearGradient>
+          </defs>
           
           <Area
             type="linear"
