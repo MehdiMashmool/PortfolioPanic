@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { useGame } from '../contexts/GameContext';
-import { formatCurrency, calculatePositionValue } from '../utils/marketLogic';
+import { formatCurrency } from '../utils/marketLogic';
+import { calculatePositionValue } from '../utils/portfolioUtils';
 
 const HoldingsList = () => {
   const { state, calculateNetWorth } = useGame();

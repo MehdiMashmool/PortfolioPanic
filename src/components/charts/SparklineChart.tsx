@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, Area, CartesianGrid } from 'recharts';
 import { cn } from "@/lib/utils";
@@ -25,11 +24,11 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   data,
   color = "#10B981", 
   className,
-  height = 30,
+  height = 40,
   showTooltip = false,
   showAxes = false,
   valuePrefix = '',
-  areaFill = false,
+  areaFill = true,
   referenceValue,
   amplifyVisuals = true,
   assetType
@@ -54,7 +53,7 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
   }, [data]);
 
   if (!chartData || chartData.length === 0) {
-    return <div className={cn("h-[30px] w-full", className)} />;
+    return <div className={cn("h-[40px] w-full", className)} />;
   }
 
   const startValue = referenceValue !== undefined ? referenceValue : chartData[0].value;
@@ -74,16 +73,28 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
     areaColor = isPositive ? `${lineColor}20` : `${lineColor}20`;
   }
 
-  const { enhancedMin, enhancedMax } = calculateChartDomains(chartData, amplifyVisuals);
+  // More amplified domain calculation
+  const values = chartData.map(d => d.value);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const valueRange = maxValue - minValue || maxValue * 0.1;
+  
+  // Amplify the visuals more to show fluctuations clearly
+  const paddingFactor = amplifyVisuals ? 0.3 : 0.1;
+  const padding = valueRange * paddingFactor;
+  
+  const enhancedMin = Math.max(0, minValue - padding * 2);
+  const enhancedMax = maxValue + padding * 2;
 
   const timeValues = chartData.map(item => item.timeInSeconds || 0);
   const minTime = Math.min(...timeValues);
   const maxTime = Math.max(...timeValues);
   
-  const timeTicks = [minTime, Math.floor((minTime + maxTime) / 2), maxTime];
+  // Add more ticks for better time representation
+  const timeTicks = [minTime, Math.floor((minTime + maxTime) / 3), Math.floor((minTime + maxTime) * 2/3), maxTime];
 
   return (
-    <div className={cn("h-[30px] w-full", className)}>
+    <div className={cn("h-[40px] w-full", className)}>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart 
           data={chartData}
@@ -122,24 +133,24 @@ const SparklineChart: React.FC<SparklineChartProps> = ({
             <>
               <defs>
                 <linearGradient id={`sparklineGradient-${assetType || 'default'}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={lineColor} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
+                  <stop offset="5%" stopColor={lineColor} stopOpacity={0.4} />
+                  <stop offset="95%" stopColor={lineColor} stopOpacity={0.1} />
                 </linearGradient>
               </defs>
               <Area
-                type="linear"
+                type="monotone"
                 dataKey="value"
                 stroke="none"
                 fill={`url(#sparklineGradient-${assetType || 'default'})`}
-                fillOpacity={0.2}
+                fillOpacity={0.3} 
               />
             </>
           )}
           <Line
-            type="linear"
+            type="monotone"
             dataKey="value"
             stroke={lineColor}
-            strokeWidth={2}
+            strokeWidth={2} 
             dot={false}
             activeDot={showTooltip ? { r: 4, stroke: lineColor, strokeWidth: 2, fill: "#1A1F2C" } : false}
           />

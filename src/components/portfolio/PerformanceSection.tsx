@@ -10,13 +10,15 @@ interface PerformanceSectionProps {
   hasFirstTrade: boolean;
   hasDoubledPortfolio: boolean;
   isDiversified: boolean;
+  height?: number;
 }
 
 const PerformanceSection = ({ 
   netWorthHistory,
   hasFirstTrade,
   hasDoubledPortfolio,
-  isDiversified
+  isDiversified,
+  height = 250
 }: PerformanceSectionProps) => {
   return (
     <div className="mt-6 p-4 bg-panel/30 rounded-lg border border-panel-light/30">
@@ -43,7 +45,7 @@ const PerformanceSection = ({
           <AchievementBadge type="diversified" unlocked={isDiversified} size="sm" />
         </div>
       </div>
-      <PerformanceChart data={netWorthHistory} height={250} />
+      <PerformanceChart data={netWorthHistory} height={height} />
     </div>
   );
 };

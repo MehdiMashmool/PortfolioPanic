@@ -1,4 +1,3 @@
-
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer } from './ui/chart';
@@ -44,7 +43,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const timeValues = formattedData.map(item => item.timeInSeconds);
   const minTime = Math.min(...timeValues);
   const maxTime = Math.max(...timeValues);
-  const timeRange = maxTime - minTime;
+  const timeRange = maxTime - minTime > 0 ? maxTime - minTime : 60; // Ensure we have at least a 60-second range
 
   // Generate meaningful tick values
   const generateTicks = () => {
@@ -62,6 +61,14 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
       color: isPositive ? '#10B981' : '#EF4444',
     },
   };
+
+  // Calculate Y-axis domain with padding
+  const values = formattedData.map(item => item.value);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const valueRange = maxValue - minValue;
+  const yMin = Math.max(0, minValue - valueRange * 0.1);
+  const yMax = maxValue + valueRange * 0.1;
 
   return (
     <div className="h-full w-full portfolio-chart" style={{ height }}>
@@ -89,7 +96,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             }}
           />
           <YAxis 
-            domain={['auto', 'auto']}
+            domain={[yMin, yMax]}
             tickFormatter={(value) => formatCurrency(value).replace('$', '')}
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}

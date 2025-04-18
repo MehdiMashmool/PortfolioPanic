@@ -1,20 +1,17 @@
-
 import type { Asset, NewsItem } from '../types/game';
 
 // Asset volatility calibration - real market data
 const ASSET_VOLATILITY = {
-  stock: 0.0172,  // ~1.72% daily volatility (tech stocks)
-  gold: 0.0089,   // ~0.89% daily volatility (gold)
-  oil: 0.0218,    // ~2.18% daily volatility (oil)
-  crypto: 0.0347  // ~3.47% daily volatility (bitcoin)
+  stock: 0.0172,     // ~1.72% daily volatility (stocks)
+  commodity: 0.0154, // ~1.54% daily volatility (commodities average)
+  crypto: 0.0347     // ~3.47% daily volatility (cryptocurrencies)
 };
 
 // Correlation matrix between different asset types
 const CORRELATION_MATRIX = {
-  stock:  { stock: 1.0,  gold: -0.2, oil: 0.3,  crypto: 0.4  },
-  gold:   { stock: -0.2, gold: 1.0,  oil: 0.0,  crypto: 0.1  },
-  oil:    { stock: 0.3,  gold: 0.0,  oil: 1.0,  crypto: 0.2  },
-  crypto: { stock: 0.4,  gold: 0.1,  oil: 0.2,  crypto: 1.0  }
+  stock:     { stock: 1.0,  commodity: 0.1, crypto: 0.4  },
+  commodity: { stock: 0.1,  commodity: 1.0, crypto: 0.1  },
+  crypto:    { stock: 0.4,  commodity: 0.1, crypto: 1.0  }
 };
 
 // Generate a normally distributed random number using Box-Muller transform
@@ -90,15 +87,6 @@ export const calculateNewPrices = (
   return Math.round(newPrice * 100) / 100;
 };
 
-// Function to calculate profit/loss for a position
-export const calculatePositionValue = (
-  quantity: number,
-  averagePrice: number,
-  currentPrice: number
-): number => {
-  return quantity * (currentPrice - averagePrice);
-};
-
 // Function to calculate return percentage
 export const calculateReturnPercentage = (
   initialValue: number,
@@ -108,38 +96,14 @@ export const calculateReturnPercentage = (
   return ((currentValue - initialValue) / initialValue) * 100;
 };
 
-// Function to format currency
+// Export the formatCurrency utility
 export const formatCurrency = (amount: number): string => {
-  // For very large numbers, use abbreviations (K, M, B)
-  if (Math.abs(amount) >= 1000000000) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount / 1000000000) + 'B';
-  } else if (Math.abs(amount) >= 1000000) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount / 1000000) + 'M';
-  } else if (Math.abs(amount) >= 1000) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  } else {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  }
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(amount);
 };
 
 // Format large numbers with k/m/b suffixes
@@ -161,7 +125,7 @@ export const formatPercentage = (percentage: number): string => {
   return percentage.toFixed(2) + '%';
 };
 
-// Determine color based on value change
+// Utility to get CSS color class based on price change
 export const getPriceChangeColor = (change: number): string => {
   if (change > 0) return 'text-profit';
   if (change < 0) return 'text-loss';
@@ -172,15 +136,6 @@ export const getPriceChangeColor = (change: number): string => {
 export const formatPriceChange = (change: number): string => {
   const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '';
   return `${arrow} ${Math.abs(change).toFixed(2)}`;
-};
-
-// Calculate portfolio allocation
-export const calculateAllocation = (
-  assetValue: number,
-  totalPortfolioValue: number
-): number => {
-  if (totalPortfolioValue === 0) return 0;
-  return (assetValue / totalPortfolioValue) * 100;
 };
 
 // Generate correlated price movements for assets

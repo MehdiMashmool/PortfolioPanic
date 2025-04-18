@@ -7,7 +7,11 @@ import AllocationSection from './portfolio/AllocationSection';
 import PerformanceSection from './portfolio/PerformanceSection';
 import SparklineChart from './charts/SparklineChart';
 
-const PortfolioSummary = () => {
+interface PortfolioSummaryProps {
+  compactMode?: boolean;
+}
+
+const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({ compactMode = false }) => {
   const { state } = useGame();
   const netWorth = state.netWorthHistory[state.netWorthHistory.length - 1]?.value || 0;
   const netWorthChange = state.netWorthHistory.length > 1
@@ -40,41 +44,87 @@ const PortfolioSummary = () => {
   });
   const isDiversified = investedTypes.size >= assetTypes.size;
 
-  return (
-    <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl relative overflow-hidden">
-      <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <div className="md:col-span-4">
-            <PortfolioValue 
-              netWorth={netWorth}
-              netWorthChange={netWorthChange}
-              netWorthPercentChange={netWorthPercentChange}
-            />
-          </div>
-          
-          <div className="md:col-span-5">
-            <InvestmentSummary
-              totalInvested={totalInvested}
-              netWorth={netWorth}
-              cash={state.cash}
-            />
-          </div>
-          
-          <div className="md:col-span-3">
-            <AllocationSection
-              holdings={state.holdings}
-              assets={state.assets}
-              cash={state.cash}
-            />
-          </div>
+  if (compactMode) {
+    return (
+      <div className="flex flex-col space-y-3">
+        <PortfolioValue 
+          netWorth={netWorth}
+          netWorthChange={netWorthChange}
+          netWorthPercentChange={netWorthPercentChange}
+          compact={true}
+        />
+        
+        <div className="grid grid-cols-2 gap-2">
+          <InvestmentSummary
+            totalInvested={totalInvested}
+            netWorth={netWorth}
+            cash={state.cash}
+            compact={true}
+          />
+            
+          <AllocationSection
+            holdings={state.holdings}
+            assets={state.assets}
+            cash={state.cash}
+            compact={true}
+          />
         </div>
         
-        <PerformanceSection
-          netWorthHistory={state.netWorthHistory}
-          hasFirstTrade={hasFirstTrade}
-          hasDoubledPortfolio={hasDoubledPortfolio}
-          isDiversified={isDiversified}
-        />
+        {!compactMode && (
+          <PerformanceSection
+            netWorthHistory={state.netWorthHistory}
+            hasFirstTrade={hasFirstTrade}
+            hasDoubledPortfolio={hasDoubledPortfolio}
+            isDiversified={isDiversified}
+            height={120}
+          />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <Card className="bg-gradient-to-br from-[#0F172A]/90 to-[#1E293B]/60 border-white/10 backdrop-blur-xl relative overflow-hidden">
+      <CardContent className="p-4">
+        <div className="flex flex-col space-y-4">
+          {/* Top section: Portfolio value, invested amount and allocation */}
+          <div className="grid grid-cols-12 gap-2">
+            <div className="col-span-4">
+              <PortfolioValue 
+                netWorth={netWorth}
+                netWorthChange={netWorthChange}
+                netWorthPercentChange={netWorthPercentChange}
+              />
+            </div>
+            
+            <div className="col-span-4">
+              <InvestmentSummary
+                totalInvested={totalInvested}
+                netWorth={netWorth}
+                cash={state.cash}
+                compact={true}
+              />
+            </div>
+            
+            <div className="col-span-4">
+              <AllocationSection
+                holdings={state.holdings}
+                assets={state.assets}
+                cash={state.cash}
+                compact={true}
+              />
+            </div>
+          </div>
+          
+          {/* Performance chart */}
+          <PerformanceSection
+            netWorthHistory={state.netWorthHistory}
+            hasFirstTrade={hasFirstTrade}
+            hasDoubledPortfolio={hasDoubledPortfolio}
+            isDiversified={isDiversified}
+            height={220}
+          />
+        </div>
       </CardContent>
     </Card>
   );

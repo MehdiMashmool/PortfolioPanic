@@ -1,8 +1,7 @@
-
 import { CardHeader, CardTitle } from './ui/card';
 import { Progress } from './ui/progress';
 import { useGame } from '../contexts/GameContext';
-import { AlertTriangle, ChevronRight, Flag, Clock } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Flag, Clock, TrendingUp, Target } from 'lucide-react';
 import { Button } from './ui/button';
 import RoundMissions from './RoundMissions';
 import {
@@ -16,8 +15,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-const RoundInfo = () => {
+interface RoundInfoProps {
+  hideMissions?: boolean;
+  compactMode?: boolean;
+}
+
+const RoundInfo: React.FC<RoundInfoProps> = ({ 
+  hideMissions = false,
+  compactMode = false
+}) => {
   const { state, nextRound, endGame } = useGame();
   const { round, timeRemaining, isGameOver, activeMissions } = state;
   
@@ -39,6 +52,58 @@ const RoundInfo = () => {
 
   const isRoundComplete = timeRemaining <= 0 && !isGameOver;
   
+  // Calculate portfolio goals
+  const portfolioGoal = 10000 + ((round - 1) * 3000);
+  const currentNetWorth = state.netWorthHistory[state.netWorthHistory.length - 1]?.value || 10000;
+  const hasReachedGoal = currentNetWorth >= portfolioGoal;
+
+  if (compactMode) {
+    return (
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <Target size={14} className="text-amber-400 mr-1" />
+            <span className="text-sm text-gray-300">Portfolio Goal:</span>
+            <div className="ml-2 flex items-center">
+              <span className={`${hasReachedGoal ? 'text-green-400' : 'text-amber-400'}`}>
+                ${portfolioGoal.toLocaleString()}
+              </span>
+              {hasReachedGoal && (
+                <span className="ml-1 px-1 py-0.5 text-[10px] bg-green-900/50 text-green-300 rounded-sm">
+                  REACHED
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Clock size={16} className={`${timeRemaining <= 10 ? 'text-red-500 animate-pulse' : 'text-white'}`} />
+          <div className={`text-sm font-medium ${getTimeColor()}`}>
+            {timeRemaining <= 0 ? '0:00' : `${Math.floor(timeRemaining / 60)}:${(Math.floor(timeRemaining) % 60).toString().padStart(2, '0')}`}
+          </div>
+          {timeRemaining <= 10 && <AlertTriangle size={16} className="text-red-500 animate-pulse" />}
+        </div>
+        
+        <Progress 
+          value={progressPercentage} 
+          className={`h-2 ${getBarColor()}`} 
+        />
+        
+        {isRoundComplete && (
+          <div className="flex justify-center mt-2">
+            <Button 
+              onClick={nextRound}
+              className="bg-blue-600 hover:bg-blue-700 text-white animate-pulse transition-all flex items-center gap-1 px-3 py-1 h-8 text-sm"
+            >
+              {round < 10 ? 'Next Round' : 'Complete Game'} <ChevronRight size={14} />
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+  
   return (
     <CardHeader className="pb-2">
       <div className="flex justify-between items-center">
@@ -46,12 +111,59 @@ const RoundInfo = () => {
           {isGameOver ? 'Game Over' : `Round ${round}/10`}
           {!isGameOver && <span className="text-sm text-gray-400 ml-2">({Math.min(round * 10, 100)}% complete)</span>}
         </CardTitle>
-        <div className={`text-lg font-semibold ${getTimeColor()} flex items-center`}>
-          <Clock size={16} className="mr-1.5" />
-          {timeRemaining <= 10 && <AlertTriangle size={16} className="mr-1 animate-pulse text-red-500 inline" />}
-          {timeRemaining <= 0 ? '0:00' : `${Math.floor(timeRemaining / 60)}:${(Math.floor(timeRemaining) % 60).toString().padStart(2, '0')}`}
-        </div>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={`text-lg px-2 py-1 rounded-md ${
+                timeRemaining <= 10 ? 'bg-red-900/50 shadow-glow-red animate-pulse' : 
+                timeRemaining <= 20 ? 'bg-amber-900/50' : 'bg-blue-900/30'
+              } font-bold ${getTimeColor()} flex items-center`}>
+                <Clock size={16} className={`mr-1.5 ${timeRemaining <= 10 ? 'animate-spin-slow' : ''}`} />
+                {timeRemaining <= 10 && <AlertTriangle size={16} className="mr-1 animate-pulse text-red-500 inline" />}
+                {timeRemaining <= 0 ? '0:00' : `${Math.floor(timeRemaining / 60)}:${(Math.floor(timeRemaining) % 60).toString().padStart(2, '0')}`}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="bg-dark border-highlight">
+              <p className="text-xs">Time remaining in this round</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
+      
+      {/* Portfolio Goal Section */}
+      <div className="mt-2 mb-2 p-2 bg-amber-900/20 border border-amber-900/30 rounded-md">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center text-sm">
+            <Target size={16} className="text-amber-400 mr-2" />
+            <span>Round Goal:</span>
+          </div>
+          <div className="flex items-center">
+            <span className={`font-bold ${hasReachedGoal ? 'text-green-400' : 'text-amber-400'}`}>
+              ${portfolioGoal.toLocaleString()}
+            </span>
+            {hasReachedGoal && (
+              <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-900/50 text-green-300 rounded-sm flex items-center">
+                <TrendingUp size={12} className="mr-1" /> ACHIEVED
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <div className="mt-1 text-xs text-neutral">
+          Current value: ${currentNetWorth.toLocaleString()} 
+          ({hasReachedGoal ? 
+            <span className="text-green-400">+${(currentNetWorth - portfolioGoal).toLocaleString()}</span> : 
+            <span className="text-amber-400">-${(portfolioGoal - currentNetWorth).toLocaleString()}</span>}
+          )
+        </div>
+        
+        <Progress 
+          value={(currentNetWorth / portfolioGoal) * 100} 
+          className={`h-1.5 mt-1 ${hasReachedGoal ? 'bg-green-900/30' : 'bg-amber-900/30'}`} 
+        />
+      </div>
+      
       <Progress 
         value={progressPercentage} 
         className={`h-2 mt-2 ${getBarColor()}`} 
@@ -62,10 +174,12 @@ const RoundInfo = () => {
         </div>
       )}
 
-      {/* Add Round Missions */}
-      <div className="mt-4">
-        <RoundMissions missions={activeMissions} />
-      </div>
+      {/* Only show missions if not hidden */}
+      {!hideMissions && (
+        <div className="mt-4">
+          <RoundMissions missions={activeMissions} />
+        </div>
+      )}
       
       {isRoundComplete && (
         <div className="mt-4 flex gap-2 justify-center">

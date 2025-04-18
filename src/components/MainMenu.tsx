@@ -1,28 +1,55 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from './ui/button';
-import { Info, Trophy, ArrowRight, Medal, LogIn } from 'lucide-react';
+import { Info, Trophy, ArrowRight, Medal, LogIn, LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useState, useEffect } from 'react';
+import { supabase } from '../integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 const MainMenu = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [username, setUsername] = useState<string>('');
 
   useEffect(() => {
-    // Check current auth status
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+    // Check authentication status
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+      if (session?.user) {
+        setUsername(session.user.user_metadata?.username || '');
+      }
+    };
+    
+    checkAuth();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
+      setIsAuthenticated(!!session);
+      if (session?.user) {
+        setUsername(session.user.user_metadata?.username || '');
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "Sign out failed",
+        description: "An error occurred while signing out. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] flex flex-col items-center justify-center p-4">
@@ -32,9 +59,16 @@ const MainMenu = () => {
             PORTFOLIO PANIC
           </h1>
           <p className="text-xl text-gray-300">Master the markets before time runs out!</p>
+          
+          {isAuthenticated && username && (
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+              <User size={14} />
+              <span>Playing as {username}</span>
+            </div>
+          )}
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           <Button 
             className="w-full h-16 bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             onClick={() => navigate('/game')}
@@ -43,7 +77,7 @@ const MainMenu = () => {
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <Button 
               variant="outline" 
               className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
@@ -52,36 +86,50 @@ const MainMenu = () => {
               <Info className="mr-2 h-4 w-4 text-blue-400" />
               How to Play
             </Button>
-            {user ? (
-              <>
-                <Button 
-                  variant="outline"
-                  className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
-                  onClick={() => navigate('/achievements')}
-                >
-                  <Trophy className="mr-2 h-4 w-4 text-amber-400" />
-                  Achievements
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
-                  onClick={() => navigate('/leaderboard')}
-                >
-                  <Medal className="mr-2 h-4 w-4 text-emerald-400" />
-                  Leaderboard
-                </Button>
-              </>
+            <Button 
+              variant="outline"
+              className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
+              onClick={() => navigate('/leaderboard')}
+            >
+              <Medal className="mr-2 h-4 w-4 text-emerald-400" />
+              Leaderboard
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Button 
+              variant="outline"
+              className={`bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md ${!isAuthenticated ? 'opacity-50' : ''}`}
+              onClick={() => navigate('/achievements')}
+              disabled={!isAuthenticated}
+            >
+              <Trophy className="mr-2 h-4 w-4 text-amber-400" />
+              Achievements
+              {!isAuthenticated && (
+                <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded-full">
+                  Sign In
+                </span>
+              )}
+            </Button>
+            
+            {isAuthenticated ? (
+              <Button 
+                variant="outline"
+                className="bg-red-900/30 border-red-800/50 hover:bg-red-900/50 text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
+                onClick={handleSignOut}
+              >
+                <LogOut className="mr-2 h-4 w-4 text-red-400" />
+                Sign Out
+              </Button>
             ) : (
-              <>
-                <Button 
-                  variant="outline"
-                  className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg col-span-2 shadow transition-all duration-300 hover:shadow-md"
-                  onClick={() => navigate('/auth')}
-                >
-                  <LogIn className="mr-2 h-4 w-4 text-primary" />
-                  Sign In for Leaderboard
-                </Button>
-              </>
+              <Button 
+                variant="outline"
+                className="bg-blue-900/30 border-blue-700/50 hover:bg-blue-900/50 text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
+                onClick={() => navigate('/auth')}
+              >
+                <LogIn className="mr-2 h-4 w-4 text-blue-400" />
+                Sign In
+              </Button>
             )}
           </div>
         </div>

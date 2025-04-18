@@ -9,6 +9,7 @@ import { supabase } from '../integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { updateAssetPriceHistory, updatePortfolioHistory } from '../utils/chartUtils';
 import { Mission } from '../types/missions';
+import { formatCurrency } from '../utils/marketLogic';
 
 type GameContextType = {
   state: GameState;
@@ -51,7 +52,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let frameId: number;
 
     const updateTimer = (timestamp: number) => {
-      if (!state.isGameOver) {
+      if (!state.isGameOver && !state.isPaused) {
         if (lastTickTime === null) {
           setLastTickTime(timestamp);
         } else {
@@ -92,12 +93,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setRecentNewsIds(newRecentNewsIds);
 
               setTimeout(() => {
-                dispatch({ type: 'EXPIRE_NEWS', payload: newsItem.id });
-                setRecentNewsIds(prev => {
-                  const updated = new Set(prev);
-                  updated.delete(newsItem.id);
-                  return updated;
-                });
+                if (!state.isPaused && !state.isGameOver) {
+                  dispatch({ type: 'EXPIRE_NEWS', payload: newsItem.id });
+                  setRecentNewsIds(prev => {
+                    const updated = new Set(prev);
+                    updated.delete(newsItem.id);
+                    return updated;
+                  });
+                }
               }, 15000);
               
               setLastNewsUpdate(now);
@@ -119,6 +122,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           setLastTickTime(timestamp);
         }
+      } else {
+        setLastTickTime(timestamp);
       }
       
       frameId = requestAnimationFrame(updateTimer);
@@ -126,13 +131,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     frameId = requestAnimationFrame(updateTimer);
     return () => cancelAnimationFrame(frameId);
-  }, [state.isGameOver, lastTickTime, lastPriceUpdate, lastNetWorthUpdate, lastNewsUpdate, state.assets]);
+  }, [state.isGameOver, state.isPaused, lastTickTime, lastPriceUpdate, lastNetWorthUpdate, lastNewsUpdate, state.assets]);
 
   useEffect(() => {
     const saveHighScore = async () => {
       if (state.isGameOver) {
         try {
           const { data: { user } } = await supabase.auth.getUser();
+          
+          // Only save score if user is authenticated
           if (user) {
             const finalValue = calculateNetWorth();
             await supabase
@@ -142,9 +149,28 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 portfolio_value: finalValue,
                 achieved_at: new Date().toISOString()
               });
+              
+            toast({
+              title: "Score saved!",
+              description: `Your final score of ${formatCurrency(finalValue)} has been saved to the leaderboard.`,
+              duration: 5000,
+            });
+          } else {
+            // Show a toast that user is not signed in
+            toast({
+              title: "Score not saved",
+              description: "Sign in to save your score to the leaderboard!",
+              duration: 5000,
+            });
           }
         } catch (error) {
           console.error('Error saving high score:', error);
+          toast({
+            title: "Error saving score",
+            description: "There was a problem saving your score.",
+            variant: "destructive",
+            duration: 5000,
+          });
         }
       }
     };

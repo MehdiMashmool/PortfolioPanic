@@ -125,9 +125,8 @@ export const getAssetChartColors = (assetType: string, prices: number[]) => {
   
   const baseColors: Record<string, {positive: string, negative: string}> = {
     'stock': { positive: '#10B981', negative: '#EF4444' },
-    'gold': { positive: '#FFD700', negative: '#D7A700' },
-    'oil': { positive: '#10B981', negative: '#EF4444' },
-    'crypto': { positive: '#10B981', negative: '#EF4444' },
+    'commodity': { positive: '#F59E0B', negative: '#B45309' },
+    'crypto': { positive: '#8B5CF6', negative: '#7C3AED' },
     'default': { positive: '#10B981', negative: '#EF4444' }
   };
   

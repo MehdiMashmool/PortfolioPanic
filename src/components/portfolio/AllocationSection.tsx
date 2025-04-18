@@ -1,16 +1,18 @@
-
+import { useMemo } from 'react';
+import { formatCurrency, formatPercentage } from '@/utils/marketLogic';
+import { Holdings, Asset } from '@/types/game';
 import { HelpCircle } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import AllocationPieChart from '../AllocationPieChart';
-import { Asset, Holdings } from '@/types/game';
 
 interface AllocationSectionProps {
   holdings: Holdings;
   assets: Asset[];
   cash: number;
+  compact?: boolean;
 }
 
-const AllocationSection = ({ holdings, assets, cash }: AllocationSectionProps) => {
+const AllocationSection = ({ holdings, assets, cash, compact = false }: AllocationSectionProps) => {
   const calculatePortfolioData = () => {
     let totalInvested = 0;
     const assetValues: { [key: string]: number } = {};
@@ -60,7 +62,7 @@ const AllocationSection = ({ holdings, assets, cash }: AllocationSectionProps) =
   };
 
   return (
-    <div className="p-4 bg-panel/50 rounded-lg border border-panel-light/50">
+    <div className={`p-${compact ? '3' : '4'} rounded-lg bg-panel/50 border border-panel-light/50`}>
       <div className="text-sm text-gray-400 font-medium mb-1 flex items-center justify-between">
         <span>Allocation</span>
         <TooltipProvider>
@@ -75,7 +77,7 @@ const AllocationSection = ({ holdings, assets, cash }: AllocationSectionProps) =
         </TooltipProvider>
       </div>
       <div className="relative">
-        <AllocationPieChart data={calculatePortfolioData()} />
+        <AllocationPieChart data={calculatePortfolioData()} className={compact ? "h-[80px]" : ""} />
         
         {Object.keys(holdings).length > 0 && new Set(assets.filter(asset => 
           holdings[asset.id]?.quantity > 0
