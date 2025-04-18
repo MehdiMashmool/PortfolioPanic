@@ -23,10 +23,19 @@ export type NewsItem = {
   title: string;
   content: string;
   impactedAssets: string[];
-  sentiment: 'positive' | 'negative' | 'neutral';
+  sentiment: 'positive' | 'negative' | 'neutral' | 'mixed' | 'humorous';
   magnitude: number;
   timestamp: number;
   isActive: boolean;
+  source?: string;
+  isBlackSwan?: boolean;
+  circuitBreaker?: boolean;
+  aftershockProbability?: number;
+  aftershockDelay?: number;
+  appliedImpact?: number;
+  targetImpact?: number;
+  impactRate?: number;
+  decayRate?: number;
 };
 
 export type TradeAction = 'buy' | 'sell' | 'short' | 'cover';
