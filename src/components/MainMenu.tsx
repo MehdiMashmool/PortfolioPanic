@@ -1,10 +1,28 @@
+
 import React from 'react';
 import { Button } from './ui/button';
-import { Info, Trophy, ArrowRight, Medal } from 'lucide-react';
+import { Info, Trophy, ArrowRight, Medal, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
 
 const MainMenu = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Check current auth status
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B1222] to-[#0F1A2A] flex flex-col items-center justify-center p-4">
@@ -34,22 +52,37 @@ const MainMenu = () => {
               <Info className="mr-2 h-4 w-4 text-blue-400" />
               How to Play
             </Button>
-            <Button 
-              variant="outline"
-              className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
-              onClick={() => navigate('/achievements')}
-            >
-              <Trophy className="mr-2 h-4 w-4 text-amber-400" />
-              Achievements
-            </Button>
-            <Button 
-              variant="outline"
-              className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
-              onClick={() => navigate('/leaderboard')}
-            >
-              <Medal className="mr-2 h-4 w-4 text-emerald-400" />
-              Leaderboard
-            </Button>
+            {user ? (
+              <>
+                <Button 
+                  variant="outline"
+                  className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
+                  onClick={() => navigate('/achievements')}
+                >
+                  <Trophy className="mr-2 h-4 w-4 text-amber-400" />
+                  Achievements
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg shadow transition-all duration-300 hover:shadow-md"
+                  onClick={() => navigate('/leaderboard')}
+                >
+                  <Medal className="mr-2 h-4 w-4 text-emerald-400" />
+                  Leaderboard
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  variant="outline"
+                  className="bg-panel/70 border-panel-light hover:bg-panel-light text-white h-14 rounded-lg col-span-2 shadow transition-all duration-300 hover:shadow-md"
+                  onClick={() => navigate('/auth')}
+                >
+                  <LogIn className="mr-2 h-4 w-4 text-primary" />
+                  Sign In for Leaderboard
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
