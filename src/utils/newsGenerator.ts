@@ -1,5 +1,5 @@
+
 import type { Asset, NewsItem } from '../types/game';
-import { v4 as uuidv4 } from 'uuid';
 
 // Market News Events Database
 const marketNewsEvents = [
@@ -431,6 +431,7 @@ const marketNewsEvents = [
 
 // Get news templates based on asset type
 const getAssetSpecificTemplates = (assetId: string) => {
+  // Match asset with appropriate templates based on id
   if (assetId.includes('stock')) {
     return marketNewsEvents.filter(event => 
       event.effects.stock && Math.abs(Array.isArray(event.effects.stock.change) 
@@ -457,12 +458,14 @@ const getAssetSpecificTemplates = (assetId: string) => {
     );
   }
   
+  // Return general market news for unknown asset types
   return marketNewsEvents.filter(event => event.magnitude < 0.7);
 };
 
 // Get general market news that affects multiple assets
 const getGeneralMarketNews = () => {
   return marketNewsEvents.filter(event => {
+    // Count how many asset types this event affects significantly
     let affectedAssets = 0;
     if (event.effects.stock && Math.abs(Array.isArray(event.effects.stock.change) 
       ? event.effects.stock.change[0] 
@@ -490,43 +493,48 @@ const getCrisisEvents = () => {
 };
 
 // Generate news based on available assets and current game round
-export const generateMarketNews = (
-  assets: Asset[],
-  round: number,
-  isHighImpact: boolean = false
-): NewsItem => {
+export const generateMarketNews = (assets: Asset[], round: number): NewsItem => {
+  // Determine which news type to generate
   let selectedEvent;
   let impactedAssets: string[] = [];
   
-  if (isHighImpact || (round > 3 && Math.random() < 0.05 + (round * 0.01))) {
+  // 5% chance of generating crisis news in later rounds
+  if (round > 3 && Math.random() < 0.05) {
     const crisisEvents = getCrisisEvents();
     selectedEvent = crisisEvents[Math.floor(Math.random() * crisisEvents.length)];
+    // Crisis news impacts all assets
     impactedAssets = assets.map(asset => asset.id);
   } else {
+    // Otherwise select a specific asset or general market news
     const newsType = Math.random();
     
-    if (newsType < 0.6) {
+    if (newsType < 0.6) { // 60% chance of asset-specific news
+      // Select a random asset
       const asset = assets[Math.floor(Math.random() * assets.length)];
       impactedAssets = [asset.id];
       
+      // Get news specific to this asset type
       const assetSpecificTemplates = getAssetSpecificTemplates(asset.id);
       
       if (assetSpecificTemplates.length > 0) {
         selectedEvent = assetSpecificTemplates[Math.floor(Math.random() * assetSpecificTemplates.length)];
       } else {
+        // Fallback to general market news
         const generalTemplates = getGeneralMarketNews();
         selectedEvent = generalTemplates[Math.floor(Math.random() * generalTemplates.length)];
       }
-    } else {
+    } else { // 40% chance of general market news
       const generalTemplates = getGeneralMarketNews();
       selectedEvent = generalTemplates[Math.floor(Math.random() * generalTemplates.length)];
       
+      // General news impacts a random subset of assets (1 to all)
       const numAssetsImpacted = Math.floor(Math.random() * assets.length) + 1;
       const shuffledAssets = [...assets].sort(() => 0.5 - Math.random());
       impactedAssets = shuffledAssets.slice(0, numAssetsImpacted).map(a => a.id);
     }
   }
 
+  // If no event was selected (shouldn't happen), use a placeholder
   if (!selectedEvent) {
     selectedEvent = {
       title: "Market Update",
@@ -535,23 +543,15 @@ export const generateMarketNews = (
       magnitude: 0.1
     } as any;
   }
-
-  let adjustedMagnitude = selectedEvent.magnitude;
-  if (round > 5) {
-    adjustedMagnitude = Math.min(1.0, adjustedMagnitude * (1 + (round - 5) * 0.1));
-  }
   
-  if (isHighImpact) {
-    adjustedMagnitude = Math.min(1.0, adjustedMagnitude * 1.5);
-  }
-  
+  // Create the news item
   const newsItem: NewsItem = {
-    id: uuidv4(),
+    id: `news-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
     title: selectedEvent.title,
     content: selectedEvent.content,
     impactedAssets,
     sentiment: selectedEvent.sentiment as 'positive' | 'negative' | 'neutral',
-    magnitude: adjustedMagnitude,
+    magnitude: selectedEvent.magnitude,
     timestamp: Date.now(),
     isActive: true
   };

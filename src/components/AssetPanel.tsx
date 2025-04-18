@@ -4,7 +4,7 @@ import type { Asset } from '../types/game';
 import { formatCurrency, getPriceChangeColor } from '../utils/marketLogic';
 import { Card, CardContent } from './ui/card';
 import { ArrowUp, ArrowDown, TrendingUp, ArrowRight } from 'lucide-react';
-import SparklineChart from './charts/SparklineChart';
+import SparklineChart from './charts/SparklineChart'; // Use the specialized chart component
 import { Button } from './ui/button';
 import { assetPriceHistory, generateEnhancedSparklineData } from '../utils/chartUtils';
 
@@ -46,51 +46,51 @@ const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory })
     return 'Low';
   };
 
-  const getAssetColor = (color: string) => {
-    switch (color) {
-      case 'stock': return 'TECH';
-      case 'gold': return 'GOLD';
-      case 'oil': return 'OIL';
-      case 'crypto': return 'CRYP';
-      default: return 'ASSET';
-    }
-  };
-  
   const getAssetGradient = (color: string) => {
     switch (color) {
       case 'stock': 
-        return 'bg-[#0c1322] border-[#1a2942]';
+        return 'bg-gradient-to-br from-blue-900/40 to-blue-900/10';
       case 'gold': 
-        return 'bg-[#1a1505] border-[#332505]';
+        return 'bg-gradient-to-br from-amber-900/40 to-amber-900/10';
       case 'oil': 
-        return 'bg-[#171717] border-[#2a2a2a]';
+        return 'bg-gradient-to-br from-gray-800/40 to-gray-800/10';
       case 'crypto': 
-        return 'bg-[#1e0b29] border-[#3a1451]';
+        return 'bg-gradient-to-br from-purple-900/40 to-purple-900/10';
       default: 
-        return 'bg-[#0c1322]';
+        return 'bg-gradient-dark';
     }
   };
   
-  const getChartColor = (color: string) => {
+  const getAssetBorderColor = (color: string) => {
     switch (color) {
-      case 'stock': return '#3B82F6';
-      case 'gold': return '#F59E0B';
-      case 'oil': return '#6B7280';
-      case 'crypto': return '#8B5CF6';
-      default: return '#10B981';
+      case 'stock': return 'border-blue-500';
+      case 'gold': return 'border-amber-500';
+      case 'oil': return 'border-gray-500';
+      case 'crypto': return 'border-purple-500';
+      default: return 'border-gray-700';
+    }
+  };
+
+  const getAssetIconColor = (color: string) => {
+    switch (color) {
+      case 'stock': return 'text-blue-500';
+      case 'gold': return 'text-amber-500';
+      case 'oil': return 'text-gray-500';
+      case 'crypto': return 'text-purple-500';
+      default: return 'text-gray-500';
     }
   };
   
   return (
     <Card 
-      className={`${getAssetGradient(asset.color)}
-              cursor-pointer transition-all hover:scale-[1.02] border`}
+      className={`${getAssetGradient(asset.color)} ${getAssetBorderColor(asset.color)} 
+              cursor-pointer transition-all hover:scale-[1.02] border border-opacity-60`}
       onClick={onClick}
     >
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-bold text-lg">{asset.name}</h3>
-          <div className="text-xs px-2 py-0.5 bg-[#0d1424] rounded-md">{getAssetColor(asset.color)}</div>
+          <div className="text-sm px-2 py-0.5 bg-dark rounded-md">{asset.ticker}</div>
         </div>
         
         <div className="mb-3">
@@ -102,7 +102,7 @@ const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory })
               <ArrowUp size={16} className="mr-1" /> : 
               <ArrowDown size={16} className="mr-1" />
             }
-            <span className={`${priceChange > 0 ? 'text-profit' : 'text-loss'}`}>
+            <span className={`${priceChange > 0 ? 'text-profit' : 'text-loss'} ${priceChange > 0 ? 'drop-shadow-[0_0_4px_rgba(16,185,129,0.3)]' : 'drop-shadow-[0_0_4px_rgba(239,68,68,0.3)]'}`}>
               {Math.abs(priceChangePercent).toFixed(2)}%
             </span>
           </div>
@@ -116,13 +116,13 @@ const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory })
             areaFill={true}
             amplifyVisuals={true}
             height={40}
-            color={getChartColor(asset.color)}
-            showTooltip={false}
+            assetType={asset.color}
+            showTooltip={true}
           />
         </div>
         
         <div className="flex justify-between items-center mt-3">
-          <div className="flex items-center text-xs text-neutral">
+          <div className={`flex items-center text-xs ${getAssetIconColor(asset.color)}`}>
             <TrendingUp size={14} className="mr-1" />
             <span>Volatility: {getVolatilityLevel(asset.volatility)}</span>
           </div>
@@ -130,7 +130,7 @@ const AssetPanel: React.FC<AssetPanelProps> = ({ asset, onClick, priceHistory })
           <Button 
             size="sm" 
             variant="secondary" 
-            className="h-7 px-2 bg-[#1a2133] hover:bg-[#232b3d] text-white"
+            className="h-7 px-2 bg-panel-light hover:bg-panel"
             onClick={(e) => {
               e.stopPropagation(); // Prevent card click
               onClick();

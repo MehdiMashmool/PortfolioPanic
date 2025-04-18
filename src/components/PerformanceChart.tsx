@@ -1,6 +1,5 @@
 
-import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area } from 'recharts';
 import { formatCurrency } from '../utils/marketLogic';
 import { ChartContainer } from './ui/chart';
 import CustomTooltip from './charts/CustomTooltip';
@@ -45,63 +44,52 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
   const timeValues = formattedData.map(item => item.timeInSeconds);
   const minTime = Math.min(...timeValues);
   const maxTime = Math.max(...timeValues);
-  
-  // Calculate value domain with padding
-  const values = formattedData.map(item => item.value);
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
-  
-  // Add padding to the value domain (10% padding)
-  const valuePadding = (maxValue - minValue) * 0.1;
-  const minDomain = Math.max(0, minValue - valuePadding);
-  const maxDomain = maxValue + valuePadding;
+  const timeRange = maxTime - minTime;
 
-  // Generate meaningful tick values for time axis
-  const generateTimeTicks = () => {
+  // Generate meaningful tick values
+  const generateTicks = () => {
     const tickCount = 5;
-    const interval = Math.ceil((maxTime - minTime) / (tickCount - 1));
+    const interval = Math.ceil(timeRange / (tickCount - 1));
     return Array.from({ length: tickCount }, (_, i) => minTime + i * interval);
   };
 
-  const timeTicks = generateTimeTicks();
+  const customTicks = generateTicks();
+
+  // Required chart config
+  const config = {
+    portfolio: {
+      label: 'Portfolio Value',
+      color: isPositive ? '#10B981' : '#EF4444',
+    },
+  };
 
   return (
-    <div className="h-full w-full portfolio-chart">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="h-full w-full portfolio-chart" style={{ height }}>
+      <ChartContainer className="h-full" config={config}>
         <LineChart
           data={formattedData}
-          margin={{ top: 10, right: 20, left: 20, bottom: 30 }}
+          margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
         >
-          <defs>
-            <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop 
-                offset="5%" 
-                stopColor={isPositive ? '#10B981' : '#EF4444'} 
-                stopOpacity={0.4} 
-              />
-              <stop 
-                offset="95%" 
-                stopColor={isPositive ? '#10B981' : '#EF4444'} 
-                stopOpacity={0} 
-              />
-            </linearGradient>
-          </defs>
-        
           <CartesianGrid vertical={false} stroke="#2A303C" strokeDasharray="3 3" />
-          
           <XAxis 
             dataKey="timeInSeconds"
             type="number"
             domain={[minTime, maxTime]}
-            ticks={timeTicks}
-            tickFormatter={value => `-${Math.abs(maxTime - value)}s`}
+            ticks={customTicks}
+            tickFormatter={value => `${Math.abs(value)}s`}
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
             axisLine={{ stroke: '#2A303C' }}
+            label={{ 
+              value: 'Time (seconds)', 
+              position: 'insideBottomRight',
+              offset: -5,
+              fill: '#8E9196',
+              fontSize: 12
+            }}
           />
-          
           <YAxis 
-            domain={[minDomain, maxDomain]}
+            domain={['auto', 'auto']}
             tickFormatter={(value) => formatCurrency(value).replace('$', '')}
             tick={{ fill: '#8E9196' }}
             tickLine={{ stroke: '#8E9196' }}
@@ -109,42 +97,46 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, height = 300 
             width={60}
           />
           
-          <ReferenceLine 
-            y={startValue} 
-            stroke="rgba(255,255,255,0.3)" 
-            strokeDasharray="3 3" 
-            label={{ 
-              value: formatCurrency(startValue), 
-              position: 'left',
-              fill: 'rgba(255,255,255,0.5)',
-              fontSize: 10
-            }}
-          />
-          
           <Tooltip content={<CustomTooltip />} />
           
-          <Line
-            type="monotone"
-            dataKey="value"
-            stroke={isPositive ? '#10B981' : '#EF4444'}
-            strokeWidth={2.5}
-            dot={false}
-            activeDot={{ 
-              r: 5, 
-              stroke: isPositive ? '#10B981' : '#EF4444', 
-              strokeWidth: 2, 
-              fill: "#1A1F2C" 
-            }}
-          />
+          <defs>
+            <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop 
+                offset="5%" 
+                stopColor={config.portfolio.color} 
+                stopOpacity={0.3} 
+              />
+              <stop 
+                offset="95%" 
+                stopColor={config.portfolio.color} 
+                stopOpacity={0} 
+              />
+            </linearGradient>
+          </defs>
+          
           <Area
             type="monotone"
             dataKey="value"
             stroke="none"
             fill="url(#portfolioGradient)"
-            fillOpacity={0.2}
+            fillOpacity={0.1}
+          />
+          
+          <Line
+            type="monotone"
+            dataKey="value"
+            stroke={config.portfolio.color}
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ 
+              r: 4, 
+              stroke: config.portfolio.color, 
+              strokeWidth: 2, 
+              fill: "#1A1F2C" 
+            }}
           />
         </LineChart>
-      </ResponsiveContainer>
+      </ChartContainer>
     </div>
   );
 };
