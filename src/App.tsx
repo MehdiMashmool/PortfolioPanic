@@ -1,17 +1,17 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { supabase } from "./integrations/supabase/client";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import MainMenu from "./components/MainMenu";
-import HowToPlay from "./pages/HowToPlay";
+import { supabase } from "./integrations/supabase/client";
 import Achievements from "./pages/Achievements";
-import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
-import Leaderboard from "./pages/Leaderboard";
+import HowToPlay from "./pages/HowToPlay";
 import Index from "./pages/Index";
+import Leaderboard from "./pages/Leaderboard";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +27,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       setIsAuthenticated(!!session);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
       setIsAuthenticated(!!session);
     });
 
@@ -63,11 +65,14 @@ const App = () => (
           <Route path="/" element={<MainMenu />} />
           <Route path="/game" element={<Index />} />
           <Route path="/how-to-play" element={<HowToPlay />} />
-          <Route path="/achievements" element={
-            <ProtectedRoute>
-              <Achievements />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/achievements"
+            element={
+              <ProtectedRoute>
+                <Achievements />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
