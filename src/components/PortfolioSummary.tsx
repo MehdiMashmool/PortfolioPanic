@@ -1,75 +1,90 @@
-import React from 'react';
-import { useGame } from '../contexts/GameContext';
-import { Card, CardContent } from './ui/card';
-import PortfolioValue from './portfolio/PortfolioValue';
-import InvestmentSummary from './portfolio/InvestmentSummary';
-import AllocationSection from './portfolio/AllocationSection';
-import PerformanceSection from './portfolio/PerformanceSection';
-import SparklineChart from './charts/SparklineChart';
+import React from "react";
+import { useGame } from "../contexts/GameContext";
+import { Card, CardContent } from "./ui/card";
+import PortfolioValue from "./portfolio/PortfolioValue";
+import InvestmentSummary from "./portfolio/InvestmentSummary";
+import AllocationSection from "./portfolio/AllocationSection";
+import PerformanceSection from "./portfolio/PerformanceSection";
+import SparklineChart from "./charts/SparklineChart";
 
 interface PortfolioSummaryProps {
   compactMode?: boolean;
 }
 
-const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({ compactMode = false }) => {
+const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({
+  compactMode = false,
+}) => {
   const { state } = useGame();
-  const netWorth = state.netWorthHistory[state.netWorthHistory.length - 1]?.value || 0;
-  const netWorthChange = state.netWorthHistory.length > 1
-    ? netWorth - state.netWorthHistory[0].value
-    : 0;
-  const netWorthPercentChange = state.netWorthHistory.length > 1
-    ? (netWorthChange / state.netWorthHistory[0].value) * 100
-    : 0;
+  const netWorth =
+    state.netWorthHistory[state.netWorthHistory.length - 1]?.value || 0;
+  const netWorthChange =
+    state.netWorthHistory.length > 1
+      ? netWorth - state.netWorthHistory[0].value
+      : 0;
+  const netWorthPercentChange =
+    state.netWorthHistory.length > 1
+      ? (netWorthChange / state.netWorthHistory[0].value) * 100
+      : 0;
 
-  const totalInvested = Object.entries(state.holdings).reduce((total, [assetId, holding]) => {
-    const asset = state.assets.find(a => a.id === assetId);
-    if (asset && holding.quantity > 0) {
-      return total + (holding.quantity * asset.price);
-    }
-    return total;
-  }, 0);
+  const totalInvested = Object.entries(state.holdings).reduce(
+    (total, [assetId, holding]) => {
+      const asset = state.assets.find((a) => a.id === assetId);
+      if (asset && holding.quantity > 0) {
+        return total + holding.quantity * asset.price;
+      }
+      return total;
+    },
+    0
+  );
 
   // Achievement checks
-  const hasFirstTrade = Object.values(state.holdings).some(h => h.quantity > 0);
+  const hasFirstTrade = Object.values(state.holdings).some(
+    (h) => h.quantity > 0
+  );
   const hasDoubledPortfolio = netWorth >= 20000;
-  
+
   // Check for diversification
-  const assetTypes = new Set(state.assets.map(a => a.color));
+  const assetTypes = new Set(state.assets.map((a) => a.color));
   const investedTypes = new Set();
   Object.entries(state.holdings).forEach(([assetId, holding]) => {
     if (holding.quantity > 0) {
-      const asset = state.assets.find(a => a.id === assetId);
+      const asset = state.assets.find((a) => a.id === assetId);
       if (asset) investedTypes.add(asset.color);
     }
   });
   const isDiversified = investedTypes.size >= assetTypes.size;
 
+
   if (compactMode) {
     return (
       <div className="flex flex-col space-y-3">
-        <PortfolioValue 
+        <PortfolioValue
           netWorth={netWorth}
           netWorthChange={netWorthChange}
           netWorthPercentChange={netWorthPercentChange}
-          compact={true}
+          compactMode={false}
         />
-        
-        <div className="grid grid-cols-2 gap-2">
-          <InvestmentSummary
-            totalInvested={totalInvested}
-            netWorth={netWorth}
-            cash={state.cash}
-            compact={true}
-          />
-            
-          <AllocationSection
-            holdings={state.holdings}
-            assets={state.assets}
-            cash={state.cash}
-            compact={true}
-          />
+
+        <div className="grid grid-cols-4 gap-2">
+          <div className="col-span-4">
+            <AllocationSection
+              holdings={state.holdings}
+              assets={state.assets}
+              cash={state.cash}
+              compact={true}
+            />
+          </div>
+
+          <div className="col-span-4">
+            <InvestmentSummary
+              totalInvested={totalInvested}
+              netWorth={netWorth}
+              cash={state.cash}
+              compact={true}
+            />
+          </div>
         </div>
-        
+
         {!compactMode && (
           <PerformanceSection
             netWorthHistory={state.netWorthHistory}
@@ -88,15 +103,24 @@ const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({ compactMode = false
       <CardContent className="p-4">
         <div className="flex flex-col space-y-4">
           {/* Top section: Portfolio value, invested amount and allocation */}
-          <div className="grid grid-cols-12 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <div className="col-span-4">
-              <PortfolioValue 
+              <PortfolioValue
                 netWorth={netWorth}
                 netWorthChange={netWorthChange}
                 netWorthPercentChange={netWorthPercentChange}
               />
             </div>
-            
+
+            <div className="col-span-1">
+              <AllocationSection
+                holdings={state.holdings}
+                assets={state.assets}
+                cash={state.cash}
+                compact={true}
+              />
+            </div>
+
             <div className="col-span-4">
               <InvestmentSummary
                 totalInvested={totalInvested}
@@ -105,17 +129,8 @@ const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({ compactMode = false
                 compact={true}
               />
             </div>
-            
-            <div className="col-span-4">
-              <AllocationSection
-                holdings={state.holdings}
-                assets={state.assets}
-                cash={state.cash}
-                compact={true}
-              />
-            </div>
           </div>
-          
+
           {/* Performance chart */}
           <PerformanceSection
             netWorthHistory={state.netWorthHistory}
