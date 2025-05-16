@@ -20,7 +20,7 @@ export default function StartScreen() {
   return (
     <div className="relative min-h-screen overflow-hidden text-white">
       <img
-        className="absolute z-0 inset-0 w-screen h-screen object-cover object-right select-none pointer-events-none"
+        className="fixed z-0 inset-0 w-screen h-screen object-cover object-right select-none pointer-events-none"
         src={cityImg}
         alt="background"
       />

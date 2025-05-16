@@ -87,9 +87,9 @@ const GameDashboard: React.FC = () => {
   );
 
   return (
-    <div className="relative min-h-screen h-screen w-full overflow-hidden flex flex-col text-white">
+    <div className="relative min-h-screen lg:h-screen w-full lg:overflow-hidden flex flex-col text-white">
       <img
-        className="absolute z-0 inset-0 w-screen h-screen object-cover object-right select-none pointer-events-none"
+        className="fixed z-0 inset-0 w-screen h-screen object-cover object-right select-none pointer-events-none"
         src={cityImg}
         alt="background"
       />
@@ -98,7 +98,7 @@ const GameDashboard: React.FC = () => {
 
       <main className="w-full flex-grow grid grid-cols-12 gap-2 px-2 pb-2 overflow-hidden relative z-10">
         {/* Right Column - Game Progress and Insights */}
-        <div className="col-span-12 md:col-span-3 flex flex-col gap-2 overflow-hidden">
+        <div className="col-span-12 md:col-span-7 lg:col-span-4 flex flex-col gap-2 overflow-hidden">
           {Object.keys(state.holdings).length === 0 && showHint && (
             <Card className="border-4 bg-[#040b1c]/40 backdrop-blur-sm border-[#101a36] animate-pulse">
               <CardContent className="p-3 flex items-center justify-between">
@@ -121,12 +121,12 @@ const GameDashboard: React.FC = () => {
             </Card>
           )}
 
-          <Card className="border-4 bg-[#040b1c]/40 backdrop-blur-sm flex-grow  border-white/10 overflow-hidden">
-            <CardContent className="p-0 h-full flex flex-col">
+          <Card className="border-4 bg-[#040b1c]/40 backdrop-blur-sm flex-grow border-white/10 overflow-hidden">
+            <CardContent className="p-0 max-lg:h-[75vh] overflow-auto flex flex-col">
               <div className="p-3 border-b border-white/5 flex items-center justify-between">
                 <h2 className="text-2xl font-semibold">Assets</h2>
               </div>
-              <div className="flex-grow overflow-auto p-2">
+              <div className="flex-grow overflow-auto py-2">
                 <AssetList
                   onAssetClick={handleAssetClick}
                   filter={undefined}
@@ -149,7 +149,7 @@ const GameDashboard: React.FC = () => {
         </div>
 
         {/* Middle Column - Market News (Expanded) */}
-        <div className="col-span-12 md:col-span-6 flex flex-col gap-2 overflow-hidden">
+        <div className="col-span-12 md:row-start-2 lg:row-span-1 lg:col-span-5 flex flex-col gap-2 overflow-hidden">
           <Card className="border-4 bg-[#040b1c]/40 backdrop-blur-sm flex-grow border-white/10 overflow-hidden">
             <CardContent className="p-0 h-full flex flex-col">
               <div className="p-3 flex items-center justify-between border-b border-white/5">
@@ -209,7 +209,7 @@ const GameDashboard: React.FC = () => {
         </div>
 
         {/* Left Column - Portfolio Summary */}
-        <div className="col-span-12 md:col-span-3 flex flex-col gap-2 overflow-hidden">
+        <div className="col-span-12 md:col-span-5 lg:col-span-3 flex flex-col gap-2 overflow-hidden">
           <Card className="border-4  bg-[#040b1c]/40 backdrop-blur-sm border-white/10">
             <CardContent className="p-3">
               <PortfolioSummary compactMode={true} />

@@ -23,11 +23,11 @@ const GameHeader = () => {
         <div className="flex items-center gap-3">
           <Link
             to={"/"}
-            className="text-4xl font-bold text-[#e39137] hover:scale-105 transition-transform ml-10 cursor-default"
+            className="text-xl md:text-2xl lg:text-4xl font-bold text-[#e39137] hover:scale-105 transition-transform md:ml-10 cursor-default"
           >
             PORTFOLIO PANIC
           </Link>
-          <span className="text-[#8594a8] px-3 py-1 text-lg animate-pulse">
+          <span className="text-[#8594a8] px-3 py-1 text-sm md:text-lg animate-pulse">
             Round {state.round}/10
           </span>
         </div>

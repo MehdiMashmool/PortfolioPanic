@@ -59,7 +59,7 @@ const MainMenu = () => {
   return (
     <div className="min-h-screen bg-[#041e42] relative overflow-hidden">
       <img
-        className="absolute z-0 inset-0 w-screen h-screen object-cover object-center select-none"
+        className="fixed z-0 inset-0 w-screen h-screen object-cover object-right select-none"
         src={cityImg}
         alt="background"
       />

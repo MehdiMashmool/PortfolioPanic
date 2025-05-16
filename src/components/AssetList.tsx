@@ -1,7 +1,6 @@
-import React from 'react';
-import { useGame } from '../contexts/GameContext';
-import { Grid, ListFilter } from 'lucide-react';
-import AssetPanel from './AssetPanel';
+import React from "react";
+import { useGame } from "../contexts/GameContext";
+import AssetPanel from "./AssetPanel";
 
 interface AssetListProps {
   onAssetClick: (id: string, name: string) => void;
@@ -9,24 +8,24 @@ interface AssetListProps {
   compactView?: boolean;
 }
 
-const AssetList: React.FC<AssetListProps> = ({ 
+const AssetList: React.FC<AssetListProps> = ({
   onAssetClick,
   filter,
-  compactView = false 
+  compactView = false,
 }) => {
   const { state } = useGame();
-  
+
   // Filter assets based on the filter prop
-  const filteredAssets = state.assets.filter(asset => {
+  const filteredAssets = state.assets.filter((asset) => {
     if (!filter) return true;
-    
-    switch(filter) {
-      case 'stocks':
-        return asset.color === 'stock';
-      case 'crypto':
-        return asset.color === 'crypto';
-      case 'commodities':
-        return asset.color === 'commodity';
+
+    switch (filter) {
+      case "stocks":
+        return asset.color === "stock";
+      case "crypto":
+        return asset.color === "crypto";
+      case "commodities":
+        return asset.color === "commodity";
       default:
         return true;
     }
@@ -41,13 +40,16 @@ const AssetList: React.FC<AssetListProps> = ({
   }
 
   return (
-    <div className={`grid grid-cols-1 ${compactView ? 'gap-2' : 'gap-4'}`}>
-      {filteredAssets.map(asset => (
-        <AssetPanel 
-          key={asset.id} 
-          asset={asset} 
+    <div
+      className={`flex flex-col slim-scrollbar ${
+        compactView ? "gap-4" : "gap-6"
+      }`}
+    >
+      {filteredAssets.map((asset) => (
+        <AssetPanel
+          key={asset.id}
+          asset={asset}
           onClick={() => onAssetClick(asset.id, asset.name)}
-          compact={compactView}
         />
       ))}
     </div>
