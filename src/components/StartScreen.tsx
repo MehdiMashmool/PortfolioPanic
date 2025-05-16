@@ -1,88 +1,131 @@
+import cityImg from "@/assets/background.avif";
+import avatarImg from "@/assets/avatar.jpg";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  ArrowLeftRight,
+  Shield,
+  TrendingUp,
+  Newspaper,
+  HelpCircle,
+  Crown,
+  DollarSign,
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useGame } from "@/contexts/GameContext";
 
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { useGame } from '../contexts/GameContext';
-import { TrendingUp, DollarSign, Banknote, BarChart3 } from 'lucide-react';
-
-const StartScreen = () => {
+export default function StartScreen() {
   const { startGame } = useGame();
-  
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-md bg-panel border-highlight">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold mb-2">Portfolio Panic</CardTitle>
-          <CardDescription className="text-neutral">
-            A financial trading simulation game
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-dark p-3 rounded-md">
-              <div className="flex items-center mb-2">
-                <TrendingUp size={18} className="mr-2 text-profit" />
-                <h3 className="font-semibold">Trade Assets</h3>
-              </div>
-              <p className="text-xs text-neutral">Buy low and sell high across multiple asset classes.</p>
-            </div>
-            
-            <div className="bg-dark p-3 rounded-md">
-              <div className="flex items-center mb-2">
-                <DollarSign size={18} className="mr-2 text-gold" />
-                <h3 className="font-semibold">Manage Risk</h3>
-              </div>
-              <p className="text-xs text-neutral">Diversify your portfolio to protect against market crashes.</p>
-            </div>
-            
-            <div className="bg-dark p-3 rounded-md">
-              <div className="flex items-center mb-2">
-                <Banknote size={18} className="mr-2 text-primary" />
-                <h3 className="font-semibold">Build Wealth</h3>
-              </div>
-              <p className="text-xs text-neutral">Grow your initial $10,000 investment over 10 rounds.</p>
-            </div>
-            
-            <div className="bg-dark p-3 rounded-md">
-              <div className="flex items-center mb-2">
-                <BarChart3 size={18} className="mr-2 text-crypto" />
-                <h3 className="font-semibold">React to News</h3>
-              </div>
-              <p className="text-xs text-neutral">Adapt your strategy to news and market events.</p>
-            </div>
+    <div className="relative min-h-screen overflow-hidden text-white">
+      <img
+        className="fixed z-0 inset-0 w-screen h-screen object-cover object-right select-none pointer-events-none"
+        src={cityImg}
+        alt="background"
+      />
+
+      <main className="container relative z-30 mx-auto flex min-h-screen flex-col px-4 py-8 md:py-12 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+        <div className="flex flex-col space-y-8 lg:w-1/2">
+          <div className="space-y-2">
+            <h1 className="text-5xl font-bold text-[#ffc547] sm:text-6xl md:text-7xl">
+              PORTFOLIO PANIC
+            </h1>
+            <p className="text-xl md:text-2xl">
+              A financial trading simulation game
+            </p>
           </div>
-          
-          <div className="bg-dark p-4 rounded-md">
-            <h3 className="font-semibold mb-2">How to Play</h3>
-            <ul className="space-y-2 text-sm text-neutral">
-              <li className="flex">
-                <span className="font-bold mr-2">1.</span>
-                <span>Manage your $10,000 starting portfolio over 10 rounds of 60 seconds each.</span>
-              </li>
-              <li className="flex">
-                <span className="font-bold mr-2">2.</span>
-                <span>Click on assets to buy/sell and build a diverse portfolio.</span>
-              </li>
-              <li className="flex">
-                <span className="font-bold mr-2">3.</span>
-                <span>Watch for news events that impact asset prices.</span>
-              </li>
-              <li className="flex">
-                <span className="font-bold mr-2">4.</span>
-                <span>Maximize your total portfolio value by the final round.</span>
-              </li>
-            </ul>
+
+          <div className="space-y-4">
+            <FeatureCard
+              icon={<ArrowLeftRight className="size-8" />}
+              title="Trade Assets"
+              description="Buy low and sell high across multiple asset classes."
+              iconBg="bg-emerald-600"
+            />
+
+            <FeatureCard
+              icon={<Shield className="size-8" />}
+              title="Manage Risk"
+              description="Diversify your portfolio to mitigate potential losses"
+              iconBg="bg-blue-600"
+            />
+
+            <FeatureCard
+              icon={<TrendingUp className="size-8" />}
+              title="Build Wealth"
+              description="Grow your initial $10,000 starting portfolio."
+              iconBg="bg-cyan-600"
+            />
+
+            <FeatureCard
+              icon={<Newspaper className="size-8" />}
+              title="React to News"
+              description="Aim to maximize your total portfolio value"
+              iconBg="bg-red-600"
+            />
           </div>
-        </CardContent>
-        
-        <CardFooter>
-          <Button className="w-full" onClick={startGame}>
+
+          <Button
+            onClick={startGame}
+            className="w-full max-w-xs bg-[#ffc547] text-lg font-bold text-black hover:bg-[#e6b03f] sm:text-xl md:h-14"
+          >
             Start Game
           </Button>
-        </CardFooter>
-      </Card>
+        </div>
+
+        <div className="mt-12 flex flex-col items-center space-y-6 lg:mt-0 lg:w-1/2">
+          <Avatar className="h-32 w-32 border-4 border-[#e74c3c] bg-[#e74c3c]">
+            <AvatarImage src={avatarImg} alt="User avatar" />
+            <AvatarFallback className="bg-[#e74c3c] text-4xl">U</AvatarFallback>
+          </Avatar>
+
+          <div className="w-full space-y-4 md:max-w-md">
+            <MenuCard
+              icon={<HelpCircle className="size-8" />}
+              title="Trade Assets"
+            />
+
+            <MenuCard icon={<Crown className="size-8" />} title="Manage Risk" />
+
+            <MenuCard
+              icon={<DollarSign className="size-8" />}
+              title="React to News"
+            />
+          </div>
+        </div>
+      </main>
     </div>
   );
-};
+}
 
-export default StartScreen;
+function FeatureCard({ icon, title, description, iconBg }) {
+  return (
+    <div className="flex items-start space-x-4">
+      <div
+        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${iconBg}`}
+      >
+        {icon}
+      </div>
+      <div className="space-y-1">
+        <h3 className="text-xl font-bold text-[#ffc547] md:text-2xl">
+          {title}
+        </h3>
+        <p className="text-sm text-gray-200 md:text-base">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function MenuCard({ icon, title }) {
+  return (
+    <Card className="flex items-center space-x-4 bg-[#0c1e56]/80 p-6 text-white backdrop-blur-sm border-2 border-blue-800">
+      <div
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-blue-800/20 text-[#ffc547]`}
+      >
+        {icon}
+      </div>
+      <h3 className="text-xl font-bold md:text-2xl">{title}</h3>
+    </Card>
+  );
+}
