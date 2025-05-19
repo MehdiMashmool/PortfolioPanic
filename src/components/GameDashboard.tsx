@@ -122,7 +122,7 @@ const GameDashboard: React.FC = () => {
           )}
 
           <Card className="border-4 bg-[#040b1c]/40 backdrop-blur-sm flex-grow border-white/10 overflow-hidden">
-            <CardContent className="p-0 max-lg:h-[75vh] overflow-auto flex flex-col">
+            <CardContent className="p-0 h-[75vh] lg:h-full overflow-auto flex flex-col">
               <div className="p-3 border-b border-white/5 flex items-center justify-between">
                 <h2 className="text-2xl font-semibold">Assets</h2>
               </div>
